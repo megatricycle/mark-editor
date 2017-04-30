@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-plugin-react": "^6.10.3",
+    "husky": "^0.13.3",
+    "lint-staged": "^3.4.1",
+    "prettier": "^1.2.2",
     "react-scripts": "0.9.5"
   },
   "dependencies": {
@@ -13,6 +18,18 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint -c .eslintrc.json src/**/*.js",
+    "fixcode": "eslint -c .eslintrc.json --fix src/**/*.js",
+    "precommit": "lint-staged",
+    "prepush": "lint-staged",
+    "prettify": "prettier --tab-width 4 --single-quote --write \"./src/**/*.js\""
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --tab-width 4 --single-quote --write",
+      "git add",
+      "npm run lint"
+    ]
   }
 }
