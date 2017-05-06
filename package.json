@@ -28,7 +28,7 @@
     "prettify": "prettier --tab-width 4 --single-quote --write \"./src/**/*.js\""
   },
   "lint-staged": {
-    "*!(.min).js": [
+    "*[^.min].js": [
       "prettier --tab-width 4 --single-quote --write",
       "git add",
       "npm run lint"
