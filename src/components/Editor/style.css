@@ -1,0 +1,11 @@
+.editor-container {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+}
+
+.editor {
+    width: 80%;
+    height: 100%;
+    touch-action: none;
+}

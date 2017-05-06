@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
     "husky": "^0.13.3",
@@ -12,7 +13,8 @@
   },
   "dependencies": {
     "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react-dom": "^15.5.4",
+    "react-fontawesome": "^1.6.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -26,7 +28,7 @@
     "prettify": "prettier --tab-width 4 --single-quote --write \"./src/**/*.js\""
   },
   "lint-staged": {
-    "*.js": [
+    "*!(.min).js": [
       "prettier --tab-width 4 --single-quote --write",
       "git add",
       "npm run lint"
