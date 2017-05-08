@@ -1,48 +1,119 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 const { BABYLON } = window;
 
 import EditorSideBar from '../../components/EditorSideBar';
 import ObjectsBar from '../../components/ObjectsBar';
 import ImageTargetBar from '../../components/ImageTargetBar';
 import EditorActions from '../../redux/editor';
-import { getCurrentStep } from '../../selectors/editor';
+import { getCurrentStep, getCurrentObjects } from '../../selectors/editor';
 import './style.css';
 
 class Editor extends Component {
-    createMainScene = () => {
-        const { engine } = this;
+    constructor() {
+        super();
 
-        const scene = new BABYLON.Scene(engine);
+        this.assets = {};
+        this.objects = [];
+    }
+
+    loadAsset = asset => {
+        const { scene } = this;
+
+        return new Promise(resolve => {
+            BABYLON.SceneLoader.ImportMesh(
+                '',
+                'models/' + asset.name + '/',
+                asset.modelFilename,
+                scene,
+                newMeshes => {
+                    newMeshes.forEach(mesh => {
+                        mesh.visibility = false;
+                    });
+
+                    this.assets[asset.name] = newMeshes.map(mesh =>
+                        mesh.clone()
+                    );
+
+                    resolve(newMeshes);
+                }
+            );
+        });
+    };
+
+    loadMainAssets = () => {
+        const { assets } = this.props.editor;
+        const { loadAsset } = this;
+
+        // crash bug??
+        // const promises = assets.map(asset => loadAsset(asset.name));
+
+        return loadAsset(assets[0]);
+    };
+
+    createAsset = (id, asset, pos) => {
+        const object = {
+            type: asset,
+            id
+        };
+
+        object.meshes = this.assets[asset].map(mesh => mesh.clone());
+        object.meshes.forEach(mesh => {
+            mesh.visibility = true;
+            mesh.position.x += pos.x;
+            mesh.position.y += pos.y;
+            mesh.position.z += pos.z;
+        });
+
+        this.objects = [...this.objects, object];
+    };
+
+    createMainScene = () => {
+        const { engine, loadMainAssets } = this;
+
+        this.scene = new BABYLON.Scene(engine);
+
+        const { scene } = this;
 
         scene.clearColor = new BABYLON.Color3(0.8, 0.8, 0.8);
 
-        const camera = new BABYLON.ArcRotateCamera(
-            'camera1',
-            1,
-            1,
-            25,
-            new BABYLON.Vector3(0, 5, -10),
-            scene
-        );
+        // load main assets
+        return loadMainAssets().then(() => {
+            const camera = new BABYLON.ArcRotateCamera(
+                'camera1',
+                1,
+                1,
+                25,
+                new BABYLON.Vector3(0, 5, -10),
+                scene
+            );
 
-        camera.setTarget(BABYLON.Vector3.Zero());
-        camera.attachControl(this.canvas, false, true);
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.attachControl(this.canvas, false, true);
 
-        const light = new BABYLON.HemisphericLight(
-            'light1',
-            new BABYLON.Vector3(0, 1, 0),
-            scene
-        );
+            const light = new BABYLON.HemisphericLight(
+                'light1',
+                new BABYLON.Vector3(0, 1, 0),
+                scene
+            );
 
-        light.intensity = 0.5;
+            light.intensity = 0.5;
 
-        const sphere = BABYLON.Mesh.CreateSphere('sphere1', 16, 2, scene);
-        sphere.position.y = 1;
+            BABYLON.Mesh.CreateGround('ground1', 20, 20, 2, scene);
 
-        BABYLON.Mesh.CreateGround('ground1', 20, 20, 2, scene);
+            return Promise.resolve(scene);
+        });
+    };
 
-        return scene;
+    destroyObject = id => {
+        const object = this.objects.filter(object => object.id === id)[0];
+
+        this.objects = this.objects.filter(object => object.id !== id);
+
+        object.meshes.forEach(mesh => {
+            mesh.dispose();
+        });
     };
 
     initializeEngine = () => {
@@ -51,10 +122,10 @@ class Editor extends Component {
         this.canvas = canvas;
         this.engine = new BABYLON.Engine(canvas, true);
 
-        this.scene = this.createMainScene();
-
-        this.engine.runRenderLoop(() => {
-            this.scene.render();
+        this.createMainScene().then(() => {
+            this.engine.runRenderLoop(() => {
+                this.scene.render();
+            });
         });
     };
 
@@ -67,9 +138,47 @@ class Editor extends Component {
         setProductName('Test');
     }
 
+    componentWillReceiveProps(newProps) {
+        const { createAsset, destroyObject } = this;
+
+        const removeObjects = _.differenceBy(
+            this.props.objects,
+            newProps.objects,
+            'id'
+        );
+        const addObjects = _.differenceBy(
+            newProps.objects,
+            this.props.objects,
+            'id'
+        );
+
+        removeObjects.forEach(object => {
+            destroyObject(object.id);
+        });
+
+        addObjects.forEach(object => {
+            createAsset(object.id, object.name, object.pos);
+        });
+    }
+
     render() {
-        const { productName, steps, currentStepIndex } = this.props.editor;
-        const { step, addStep, setStepIndex, setStepInstruction } = this.props;
+        const {
+            productName,
+            steps,
+            currentStepIndex,
+            assets
+        } = this.props.editor;
+
+        const {
+            step,
+            objects,
+            addStep,
+            setStepIndex,
+            setStepInstruction,
+            addObject,
+            removeObject
+        } = this.props;
+
         const numberOfSteps = steps.length;
 
         return (
@@ -79,11 +188,13 @@ class Editor extends Component {
                     productName={productName}
                     numberOfSteps={numberOfSteps}
                     currentStepIndex={currentStepIndex}
+                    assets={assets}
                     addStep={addStep}
                     setStepIndex={setStepIndex}
                     setStepInstruction={setStepInstruction}
+                    addObject={addObject}
                 />
-                <ObjectsBar />
+                <ObjectsBar objects={objects} removeObject={removeObject} />
                 <ImageTargetBar />
                 <canvas ref="editor" className="editor" />
             </div>
@@ -94,7 +205,8 @@ class Editor extends Component {
 const mapStateToProps = state => {
     return {
         editor: state.editor,
-        step: getCurrentStep(state.editor)
+        step: getCurrentStep(state.editor),
+        objects: getCurrentObjects(state.editor)
     };
 };
 
@@ -105,7 +217,10 @@ const mapDispatchToProps = dispatch => {
         addStep: () => dispatch(EditorActions.addStep()),
         setStepIndex: i => dispatch(EditorActions.setStepIndex(i)),
         setStepInstruction: (i, instruction) =>
-            dispatch(EditorActions.setStepInstruction(i, instruction))
+            dispatch(EditorActions.setStepInstruction(i, instruction)),
+        addObject: (id, name, img, pos) =>
+            dispatch(EditorActions.addObject(id, name, img, pos)),
+        removeObject: id => dispatch(EditorActions.removeObject(id))
     };
 };
 

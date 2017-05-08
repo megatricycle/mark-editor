@@ -26,7 +26,9 @@ class EditorSideBar extends Component {
             numberOfSteps,
             currentStepIndex,
             addStep,
-            step
+            step,
+            assets,
+            addObject
         } = this.props;
 
         const { handleClickStepButton, handleInstructionChange } = this;
@@ -84,8 +86,13 @@ class EditorSideBar extends Component {
                     <p className="section-text">Models</p>
                 </div>
                 <div className="models-container">
-                    {Array.apply(null, { length: 15 }).map((x, i) => (
-                        <Model key={i} />
+                    {assets.map((asset, i) => (
+                        <Model
+                            key={i}
+                            name={asset.name}
+                            img={asset.icon}
+                            addObject={addObject}
+                        />
                     ))}
                 </div>
             </div>

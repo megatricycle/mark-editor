@@ -7,7 +7,8 @@
 .object-img {
     width: 20px;
     height: 20px;
-    background: green;
+    background-size: cover;
+    background-position: center;
 }
 
 .object-name {

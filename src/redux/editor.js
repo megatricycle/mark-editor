@@ -7,7 +7,9 @@ const { Types, Creators } = createActions({
     setProductName: ['productName'],
     addStep: null,
     setStepIndex: ['i'],
-    setStepInstruction: ['i', 'instruction']
+    setStepInstruction: ['i', 'instruction'],
+    addObject: ['id', 'name', 'img', 'pos'],
+    removeObject: ['id']
 });
 
 export const EditorTypes = Types;
@@ -24,7 +26,14 @@ export const INITIAL_STATE = Immutable({
     currentStepIndex: 0,
     productName: null,
     imageTarget: null,
-    objects: []
+    objects: [[]],
+    assets: [
+        {
+            name: 'arrow',
+            modelFilename: 'arrow.babylon',
+            icon: '/models/arrow/arrow.png'
+        }
+    ]
 });
 
 /* ------------- Reducers ------------- */
@@ -40,7 +49,8 @@ export const addStep = state =>
                 instruction: ''
             }
         ],
-        currentStepIndex: state.steps.length
+        currentStepIndex: state.steps.length,
+        objects: [...state.objects, []]
     });
 
 export const setStepIndex = (state, { i }) =>
@@ -57,11 +67,39 @@ export const setStepInstruction = (state, { i, instruction }) =>
         })
     });
 
+export const addObject = (state, { id, name, img, pos }) =>
+    state.merge({
+        objects: state.objects.map((step, i) => {
+            if (state.currentStepIndex === i) {
+                return [
+                    ...step,
+                    {
+                        id,
+                        name,
+                        img,
+                        pos
+                    }
+                ];
+            }
+
+            return step;
+        })
+    });
+
+export const removeObject = (state, { id }) =>
+    state.merge({
+        objects: state.objects.map(step => {
+            return step.filter(object => object.id !== id);
+        })
+    });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_PRODUCT_NAME]: setProductName,
     [Types.ADD_STEP]: addStep,
     [Types.SET_STEP_INDEX]: setStepIndex,
-    [Types.SET_STEP_INSTRUCTION]: setStepInstruction
+    [Types.SET_STEP_INSTRUCTION]: setStepInstruction,
+    [Types.ADD_OBJECT]: addObject,
+    [Types.REMOVE_OBJECT]: removeObject
 });

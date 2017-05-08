@@ -6,3 +6,10 @@ export const getCurrentStep = createSelector(
         return steps[currentStepIndex];
     }
 );
+
+export const getCurrentObjects = createSelector(
+    [editor => editor.objects, editor => editor.currentStepIndex],
+    (objects, currentStepIndex) => {
+        return objects[currentStepIndex];
+    }
+);
