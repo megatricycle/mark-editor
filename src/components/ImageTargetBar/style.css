@@ -1,0 +1,20 @@
+.ImageTargetBar {
+    position: absolute;
+    right: 0;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    height: 110px;
+}
+
+.image-target-container {
+    background: white;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-image-target {
+    color: rgba(0, 0, 0, 0.4);
+}

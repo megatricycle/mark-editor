@@ -63,6 +63,24 @@
 .step-button {
     height: 26px;
     margin: 2px;
+    background: none;
+    border: 1px solid #AAAAAA;
+    color: #AAAAAA;
+}
+
+.step-button:focus {
+    outline: none;
+}
+
+.step-button.inactive:active {
+    background: #101010;
+    border: 1px solid #F0F0F0;
+    color: #F0F0F0;
+}
+
+.step-button.active {
+    border: 1px solid #101010;
+    color: #101010;
 }
 
 .instructions-text {
