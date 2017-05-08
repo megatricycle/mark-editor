@@ -1,0 +1,24 @@
+.ObjectListItem {
+    padding: 0.5em;
+    border-bottom: 1px solid #4F4F4F;
+    display: flex;
+}
+
+.object-img {
+    width: 20px;
+    height: 20px;
+    background: green;
+}
+
+.object-name {
+    font-size: 0.7em;
+}
+
+.object-name-container {
+    flex-grow: 1;
+    margin-left: 0.5em;
+}
+
+.object-delete {
+    color: #444444;
+}

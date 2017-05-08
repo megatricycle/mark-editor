@@ -10,9 +10,11 @@
         }
     },
     "rules": {
-        "no-extra-parens": ["error", "all"],
         "curly": ["error", "all"],
-        "eqeqeq": ["error", "always"]
+        "eqeqeq": ["error", "always"],
+        "no-unused-vars": ["error", {
+            "args": "after-used"
+        }]
     },
     "env": {
         "node": true,

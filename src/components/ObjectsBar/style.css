@@ -5,4 +5,10 @@
     position: absolute;
     right: 0;
     bottom: 0px;
+    display: flex;
+    flex-direction: column;
+}
+
+.objects-container {
+    overflow: auto;
 }
