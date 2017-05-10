@@ -20,8 +20,17 @@ class ImageTargetBar extends Component {
 
             reader.onload = e => {
                 const { result } = e.target;
+                const img = new Image();
 
-                setImageTarget(result);
+                img.src = result;
+                img.onload = () => {
+                    const dimensions = {
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    };
+
+                    setImageTarget(result, dimensions);
+                };
             };
 
             reader.readAsDataURL(image);
@@ -54,7 +63,7 @@ class ImageTargetBar extends Component {
                             ? <div
                                   className="image-target"
                                   style={{
-                                      backgroundImage: `url("${imageTarget}")`
+                                      backgroundImage: `url("${imageTarget.blob}")`
                                   }}
                               />
                             : <FontAwesome name="plus-square-o" size="3x" />}

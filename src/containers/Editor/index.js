@@ -20,6 +20,7 @@ class Editor extends Component {
 
         this.assets = {};
         this.objects = [];
+        this.imageTarget = null;
     }
 
     loadAsset = asset => {
@@ -86,14 +87,14 @@ class Editor extends Component {
         return loadMainAssets().then(() => {
             const camera = new BABYLON.ArcRotateCamera(
                 'camera1',
-                1,
-                1,
-                25,
-                new BABYLON.Vector3(0, 5, -10),
+                0,
+                0,
+                0,
+                new BABYLON.Vector3(0, 0, 0),
                 scene
             );
 
-            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.setPosition(new BABYLON.Vector3(0, 15, -20));
             camera.attachControl(this.canvas, false, true);
 
             const light = new BABYLON.HemisphericLight(
@@ -102,9 +103,22 @@ class Editor extends Component {
                 scene
             );
 
-            light.intensity = 0.5;
+            light.intensity = 1;
 
-            BABYLON.Mesh.CreateGround('ground1', 20, 20, 2, scene);
+            const ground = BABYLON.Mesh.CreateGround(
+                'ground1',
+                30,
+                30,
+                2,
+                scene
+            );
+
+            ground.material = new BABYLON.StandardMaterial(
+                'groundTexture',
+                scene
+            );
+            ground.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+            ground.material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
 
             return Promise.resolve(scene);
         });
@@ -133,6 +147,50 @@ class Editor extends Component {
         });
     };
 
+    createImageTarget = (blob, dimensions) => {
+        const { scene } = this;
+
+        this.imageTarget = BABYLON.Mesh.CreatePlane('imageTarget', 25, scene);
+
+        // scale width
+        this.imageTarget.scaling.x = dimensions.width > dimensions.height
+            ? 1
+            : dimensions.width / dimensions.height;
+
+        // scale height
+        this.imageTarget.scaling.y = dimensions.height > dimensions.width
+            ? 1
+            : dimensions.height / dimensions.width;
+
+        this.imageTarget.material = new BABYLON.StandardMaterial(
+            'imageTargetTexture',
+            scene
+        );
+        this.imageTarget.material.ambientTexture = new BABYLON.Texture(
+            'data:imageTarget',
+            scene,
+            false,
+            true,
+            BABYLON.Texture.BILINEAR_SAMPLINGMODE,
+            null,
+            null,
+            blob,
+            true
+        );
+        this.imageTarget.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+        this.imageTarget.material.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        this.imageTarget.position = new BABYLON.Vector3(0, 0.01, 0);
+        this.imageTarget.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+    };
+
+    clearImageTarget = () => {
+        this.imageTarget.material.ambientTexture.dispose();
+        this.imageTarget.material.dispose();
+        this.imageTarget.dispose();
+        this.imageTarget = null;
+    };
+
     componentDidMount() {
         const { initializeEngine } = this;
         const { setProductName } = this.props;
@@ -143,6 +201,7 @@ class Editor extends Component {
     }
 
     componentWillReceiveProps(newProps) {
+        // add/remove objects
         const { createAsset, destroyObject } = this;
 
         const removeObjects = _.differenceBy(
@@ -163,6 +222,22 @@ class Editor extends Component {
         addObjects.forEach(object => {
             createAsset(object.id, object.name, object.pos);
         });
+
+        // image targets
+        const { createImageTarget, clearImageTarget, imageTarget } = this;
+
+        if (this.props.imageTarget !== newProps.imageTarget) {
+            if (imageTarget) {
+                clearImageTarget();
+            }
+
+            if (newProps.imageTarget) {
+                createImageTarget(
+                    newProps.imageTarget.blob,
+                    newProps.imageTarget.dimensions
+                );
+            }
+        }
     }
 
     render() {
@@ -231,7 +306,8 @@ const mapDispatchToProps = dispatch => {
         addObject: (id, name, img, pos) =>
             dispatch(EditorActions.addObject(id, name, img, pos)),
         removeObject: id => dispatch(EditorActions.removeObject(id)),
-        setImageTarget: blob => dispatch(EditorActions.setImageTarget(blob))
+        setImageTarget: (blob, dimensions) =>
+            dispatch(EditorActions.setImageTarget(blob, dimensions))
     };
 };
 

@@ -10,7 +10,7 @@ const { Types, Creators } = createActions({
     setStepInstruction: ['i', 'instruction'],
     addObject: ['id', 'name', 'img', 'pos'],
     removeObject: ['id'],
-    setImageTarget: ['blob']
+    setImageTarget: ['blob', 'dimensions']
 });
 
 export const EditorTypes = Types;
@@ -95,11 +95,11 @@ export const removeObject = (state, { id }) =>
         })
     });
 
-export const setImageTarget = (state, { blob }) =>
+export const setImageTarget = (state, { blob, dimensions }) =>
     state.merge({
         imageTargets: state.imageTargets.map((imageTarget, i) => {
             if (state.currentStepIndex === i) {
-                return blob;
+                return { blob, dimensions };
             }
 
             return imageTarget;
