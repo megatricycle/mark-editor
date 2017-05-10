@@ -7,7 +7,11 @@ import EditorSideBar from '../../components/EditorSideBar';
 import ObjectsBar from '../../components/ObjectsBar';
 import ImageTargetBar from '../../components/ImageTargetBar';
 import EditorActions from '../../redux/editor';
-import { getCurrentStep, getCurrentObjects } from '../../selectors/editor';
+import {
+    getCurrentStep,
+    getCurrentObjects,
+    getCurrentImageTarget
+} from '../../selectors/editor';
 import './style.css';
 
 class Editor extends Component {
@@ -172,11 +176,13 @@ class Editor extends Component {
         const {
             step,
             objects,
+            imageTarget,
             addStep,
             setStepIndex,
             setStepInstruction,
             addObject,
-            removeObject
+            removeObject,
+            setImageTarget
         } = this.props;
 
         const numberOfSteps = steps.length;
@@ -195,7 +201,10 @@ class Editor extends Component {
                     addObject={addObject}
                 />
                 <ObjectsBar objects={objects} removeObject={removeObject} />
-                <ImageTargetBar />
+                <ImageTargetBar
+                    imageTarget={imageTarget}
+                    setImageTarget={setImageTarget}
+                />
                 <canvas ref="editor" className="editor" />
             </div>
         );
@@ -206,7 +215,8 @@ const mapStateToProps = state => {
     return {
         editor: state.editor,
         step: getCurrentStep(state.editor),
-        objects: getCurrentObjects(state.editor)
+        objects: getCurrentObjects(state.editor),
+        imageTarget: getCurrentImageTarget(state.editor)
     };
 };
 
@@ -220,7 +230,8 @@ const mapDispatchToProps = dispatch => {
             dispatch(EditorActions.setStepInstruction(i, instruction)),
         addObject: (id, name, img, pos) =>
             dispatch(EditorActions.addObject(id, name, img, pos)),
-        removeObject: id => dispatch(EditorActions.removeObject(id))
+        removeObject: id => dispatch(EditorActions.removeObject(id)),
+        setImageTarget: blob => dispatch(EditorActions.setImageTarget(blob))
     };
 };
 

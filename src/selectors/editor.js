@@ -13,3 +13,10 @@ export const getCurrentObjects = createSelector(
         return objects[currentStepIndex];
     }
 );
+
+export const getCurrentImageTarget = createSelector(
+    [editor => editor.imageTargets, editor => editor.currentStepIndex],
+    (imageTargets, currentStepIndex) => {
+        return imageTargets[currentStepIndex];
+    }
+);

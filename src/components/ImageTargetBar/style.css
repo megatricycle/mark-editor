@@ -18,3 +18,10 @@
 .add-image-target {
     color: rgba(0, 0, 0, 0.4);
 }
+
+.image-target {
+    width: 60px;
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+}

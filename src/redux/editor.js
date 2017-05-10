@@ -9,7 +9,8 @@ const { Types, Creators } = createActions({
     setStepIndex: ['i'],
     setStepInstruction: ['i', 'instruction'],
     addObject: ['id', 'name', 'img', 'pos'],
-    removeObject: ['id']
+    removeObject: ['id'],
+    setImageTarget: ['blob']
 });
 
 export const EditorTypes = Types;
@@ -25,7 +26,7 @@ export const INITIAL_STATE = Immutable({
     ],
     currentStepIndex: 0,
     productName: null,
-    imageTarget: null,
+    imageTargets: [null],
     objects: [[]],
     assets: [
         {
@@ -50,7 +51,8 @@ export const addStep = state =>
             }
         ],
         currentStepIndex: state.steps.length,
-        objects: [...state.objects, []]
+        objects: [...state.objects, []],
+        imageTargets: [...state.imageTargets, null]
     });
 
 export const setStepIndex = (state, { i }) =>
@@ -93,6 +95,17 @@ export const removeObject = (state, { id }) =>
         })
     });
 
+export const setImageTarget = (state, { blob }) =>
+    state.merge({
+        imageTargets: state.imageTargets.map((imageTarget, i) => {
+            if (state.currentStepIndex === i) {
+                return blob;
+            }
+
+            return imageTarget;
+        })
+    });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -101,5 +114,6 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_STEP_INDEX]: setStepIndex,
     [Types.SET_STEP_INSTRUCTION]: setStepInstruction,
     [Types.ADD_OBJECT]: addObject,
-    [Types.REMOVE_OBJECT]: removeObject
+    [Types.REMOVE_OBJECT]: removeObject,
+    [Types.SET_IMAGE_TARGET]: setImageTarget
 });
