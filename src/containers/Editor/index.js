@@ -95,7 +95,10 @@ class Editor extends Component {
             );
 
             camera.setPosition(new BABYLON.Vector3(0, 15, -20));
-            camera.attachControl(this.canvas, false, true);
+            camera.attachControl(this.canvas, false, false);
+            camera.upperBetaLimit = 1.2;
+            camera.lowerRadiusLimit = 5;
+            camera.upperRadiusLimit = camera.radius * 2;
 
             const light = new BABYLON.HemisphericLight(
                 'light1',
