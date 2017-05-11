@@ -4,18 +4,31 @@ import FontAwesome from 'react-fontawesome';
 import './style.css';
 
 class ObjectListItem extends Component {
-    handleRemove = () => {
+    handleRemove = e => {
+        e.stopPropagation();
+
         const { id, removeObject } = this.props;
 
         removeObject(id);
     };
 
+    handleObjectClick = () => {
+        const { setSelectedObject, id } = this.props;
+
+        setSelectedObject(id);
+    };
+
     render() {
-        const { name, img } = this.props;
-        const { handleRemove } = this;
+        const { name, img, highlighted } = this.props;
+        const { handleRemove, handleObjectClick } = this;
 
         return (
-            <div className="ObjectListItem">
+            <div
+                className={
+                    'ObjectListItem' + (highlighted ? ' highlighted' : '')
+                }
+                onClick={handleObjectClick}
+            >
                 <div
                     className="object-img"
                     style={{ backgroundImage: `url(${img})` }}

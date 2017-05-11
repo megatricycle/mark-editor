@@ -33,13 +33,14 @@ class Editor extends Component {
                 asset.modelFilename,
                 scene,
                 newMeshes => {
-                    newMeshes.forEach(mesh => {
+                    newMeshes.forEach((mesh, i) => {
                         mesh.visibility = false;
+                        mesh.isPickable = false;
+                        mesh.id = 'baseAsset/' + asset.name + '/' + i;
+                        mesh.name = 'baseAsset/' + asset.name + '/' + i;
                     });
 
-                    this.assets[asset.name] = newMeshes.map(mesh =>
-                        mesh.clone()
-                    );
+                    this.assets[asset.name] = newMeshes;
 
                     resolve(newMeshes);
                 }
@@ -64,11 +65,15 @@ class Editor extends Component {
         };
 
         object.meshes = this.assets[asset].map(mesh => mesh.clone());
-        object.meshes.forEach(mesh => {
+        object.meshes.forEach((mesh, i) => {
             mesh.visibility = true;
+            mesh.isPickable = true;
             mesh.position.x += pos.x;
             mesh.position.y += pos.y;
             mesh.position.z += pos.z;
+            mesh.metadata = { id };
+            mesh.name = id + i;
+            mesh.id = id + i;
         });
 
         this.objects = [...this.objects, object];
@@ -122,6 +127,12 @@ class Editor extends Component {
             );
             ground.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
             ground.material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+            // remove junk
+            // scene.getMeshByID('Box').pickable = false;
+            // scene.getMeshByID('Box1').pickable = false;
+            // scene.getMeshByID('undefined.Box').pickable = false;
+            // scene.getMeshByID('undefined.Box1').pickable = false;
 
             return Promise.resolve(scene);
         });
@@ -196,11 +207,26 @@ class Editor extends Component {
 
     componentDidMount() {
         const { initializeEngine } = this;
-        const { setProductName } = this.props;
+        const { setProductName, setSelectedObject } = this.props;
+        const { editor } = this.refs;
 
         initializeEngine();
 
         setProductName('Test');
+
+        editor.addEventListener('click', () => {
+            const { scene } = this;
+
+            const pick = scene.pick(scene.pointerX, scene.pointerY);
+
+            if (pick.hit && pick.pickedMesh.metadata) {
+                const { id } = pick.pickedMesh.metadata;
+
+                setSelectedObject(id);
+            } else {
+                setSelectedObject(null);
+            }
+        });
     }
 
     componentWillReceiveProps(newProps) {
@@ -248,7 +274,8 @@ class Editor extends Component {
             productName,
             steps,
             currentStepIndex,
-            assets
+            assets,
+            selectedObject
         } = this.props.editor;
 
         const {
@@ -260,7 +287,8 @@ class Editor extends Component {
             setStepInstruction,
             addObject,
             removeObject,
-            setImageTarget
+            setImageTarget,
+            setSelectedObject
         } = this.props;
 
         const numberOfSteps = steps.length;
@@ -278,7 +306,12 @@ class Editor extends Component {
                     setStepInstruction={setStepInstruction}
                     addObject={addObject}
                 />
-                <ObjectsBar objects={objects} removeObject={removeObject} />
+                <ObjectsBar
+                    objects={objects}
+                    removeObject={removeObject}
+                    selectedObject={selectedObject}
+                    setSelectedObject={setSelectedObject}
+                />
                 <ImageTargetBar
                     imageTarget={imageTarget}
                     setImageTarget={setImageTarget}
@@ -310,7 +343,8 @@ const mapDispatchToProps = dispatch => {
             dispatch(EditorActions.addObject(id, name, img, pos)),
         removeObject: id => dispatch(EditorActions.removeObject(id)),
         setImageTarget: (blob, dimensions) =>
-            dispatch(EditorActions.setImageTarget(blob, dimensions))
+            dispatch(EditorActions.setImageTarget(blob, dimensions)),
+        setSelectedObject: id => dispatch(EditorActions.setSelectedObject(id))
     };
 };
 

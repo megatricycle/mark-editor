@@ -10,7 +10,8 @@ const { Types, Creators } = createActions({
     setStepInstruction: ['i', 'instruction'],
     addObject: ['id', 'name', 'img', 'pos'],
     removeObject: ['id'],
-    setImageTarget: ['blob', 'dimensions']
+    setImageTarget: ['blob', 'dimensions'],
+    setSelectedObject: ['id']
 });
 
 export const EditorTypes = Types;
@@ -34,7 +35,8 @@ export const INITIAL_STATE = Immutable({
             modelFilename: 'arrow.babylon',
             icon: '/models/arrow/arrow.png'
         }
-    ]
+    ],
+    selectedObject: null
 });
 
 /* ------------- Reducers ------------- */
@@ -56,7 +58,7 @@ export const addStep = state =>
     });
 
 export const setStepIndex = (state, { i }) =>
-    state.merge({ currentStepIndex: i });
+    state.merge({ currentStepIndex: i, selectedObject: null });
 
 export const setStepInstruction = (state, { i, instruction }) =>
     state.merge({
@@ -85,14 +87,16 @@ export const addObject = (state, { id, name, img, pos }) =>
             }
 
             return step;
-        })
+        }),
+        selectedObject: id
     });
 
 export const removeObject = (state, { id }) =>
     state.merge({
         objects: state.objects.map(step => {
             return step.filter(object => object.id !== id);
-        })
+        }),
+        selectedObject: null
     });
 
 export const setImageTarget = (state, { blob, dimensions }) =>
@@ -106,6 +110,11 @@ export const setImageTarget = (state, { blob, dimensions }) =>
         })
     });
 
+export const setSelectedObject = (state, { id }) =>
+    state.merge({
+        selectedObject: id
+    });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -115,5 +124,6 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_STEP_INSTRUCTION]: setStepInstruction,
     [Types.ADD_OBJECT]: addObject,
     [Types.REMOVE_OBJECT]: removeObject,
-    [Types.SET_IMAGE_TARGET]: setImageTarget
+    [Types.SET_IMAGE_TARGET]: setImageTarget,
+    [Types.SET_SELECTED_OBJECT]: setSelectedObject
 });

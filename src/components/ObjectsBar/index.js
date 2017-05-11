@@ -5,7 +5,12 @@ import './style.css';
 
 class ObjectsBar extends Component {
     render() {
-        const { objects, removeObject } = this.props;
+        const {
+            objects,
+            removeObject,
+            selectedObject,
+            setSelectedObject
+        } = this.props;
 
         return (
             <div className="objects-bar">
@@ -19,7 +24,9 @@ class ObjectsBar extends Component {
                             id={object.id}
                             name={object.name}
                             img={object.img}
+                            highlighted={object.id === selectedObject}
                             removeObject={removeObject}
+                            setSelectedObject={setSelectedObject}
                         />
                     ))}
                 </div>

@@ -4,6 +4,10 @@
     display: flex;
 }
 
+.ObjectListItem.highlighted {
+    background: #CCCCCC;
+}
+
 .object-img {
     width: 20px;
     height: 20px;
