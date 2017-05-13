@@ -1,0 +1,31 @@
+.Login {
+    background: #2b3137;
+    min-height: 100vh;
+}
+
+.sign-up-container {
+    display: flex;
+    padding: 2em 7em !important;
+}
+
+.sign-up-container > .segment {
+    width: 100%;
+    padding: 2em !important;
+    background: #F5F5F5 !important;
+}
+
+.login-description {
+    color: #F5F5F5;
+    padding-top: 2em;
+    padding-left: 6em !important;
+}
+
+.login-title {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+
+.login-subtitle {
+    font-size: 2em;
+    font-weight: 100;
+}
