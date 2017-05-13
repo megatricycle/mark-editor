@@ -11,7 +11,8 @@ const { Types, Creators } = createActions({
     addObject: ['id', 'name', 'img', 'pos'],
     removeObject: ['id'],
     setImageTarget: ['blob', 'dimensions'],
-    setSelectedObject: ['id']
+    setSelectedObject: ['id'],
+    updateObjectPosition: ['id', 'pos']
 });
 
 export const EditorTypes = Types;
@@ -115,6 +116,19 @@ export const setSelectedObject = (state, { id }) =>
         selectedObject: id
     });
 
+export const updateObjectPosition = (state, { id, pos }) =>
+    state.merge({
+        objects: state.objects.map(step => {
+            return step.map(object => {
+                if (object.id === id) {
+                    return { ...object, pos };
+                }
+
+                return object;
+            });
+        })
+    });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -125,5 +139,6 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.ADD_OBJECT]: addObject,
     [Types.REMOVE_OBJECT]: removeObject,
     [Types.SET_IMAGE_TARGET]: setImageTarget,
-    [Types.SET_SELECTED_OBJECT]: setSelectedObject
+    [Types.SET_SELECTED_OBJECT]: setSelectedObject,
+    [Types.UPDATE_OBJECT_POSITION]: updateObjectPosition
 });

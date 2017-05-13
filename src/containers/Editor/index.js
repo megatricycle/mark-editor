@@ -10,9 +10,12 @@ import EditorActions from '../../redux/editor';
 import {
     getCurrentStep,
     getCurrentObjects,
-    getCurrentImageTarget
+    getCurrentImageTarget,
+    getSelectedObject
 } from '../../selectors/editor';
 import './style.css';
+
+const MANIPULATORS_SPREAD = 1;
 
 class Editor extends Component {
     constructor() {
@@ -21,6 +24,8 @@ class Editor extends Component {
         this.assets = {};
         this.objects = [];
         this.imageTarget = null;
+        this.manipulators = null;
+        this.ground = null;
     }
 
     loadAsset = asset => {
@@ -59,24 +64,42 @@ class Editor extends Component {
     };
 
     createAsset = (id, asset, pos) => {
+        const { clearManipulator } = this;
+
+        clearManipulator();
+
         const object = {
             type: asset,
             id
         };
 
         object.meshes = this.assets[asset].map(mesh => mesh.clone());
+
+        object.meshes[0].position.x += pos.x;
+        object.meshes[0].position.y += pos.y;
+        object.meshes[0].position.z += pos.z;
+
         object.meshes.forEach((mesh, i) => {
             mesh.visibility = true;
             mesh.isPickable = true;
-            mesh.position.x += pos.x;
-            mesh.position.y += pos.y;
-            mesh.position.z += pos.z;
-            mesh.metadata = { id };
+            mesh.metadata = { id, type: 'object' };
             mesh.name = id + i;
             mesh.id = id + i;
         });
 
         this.objects = [...this.objects, object];
+    };
+
+    moveObject = (id, pos) => {
+        const object = this.objects.filter(o => o.id === id)[0];
+
+        object.meshes[0].position.x += pos.x - object.meshes[0].position.x;
+        object.meshes[0].position.y += pos.y - object.meshes[0].position.y;
+        object.meshes[0].position.z += pos.z - object.meshes[0].position.z;
+
+        if (this.manipulators) {
+            this.manipulators.position = pos;
+        }
     };
 
     createMainScene = () => {
@@ -90,7 +113,7 @@ class Editor extends Component {
 
         // load main assets
         return loadMainAssets().then(() => {
-            const camera = new BABYLON.ArcRotateCamera(
+            this.camera = new BABYLON.ArcRotateCamera(
                 'camera1',
                 0,
                 0,
@@ -98,6 +121,8 @@ class Editor extends Component {
                 new BABYLON.Vector3(0, 0, 0),
                 scene
             );
+
+            const { camera } = this;
 
             camera.setPosition(new BABYLON.Vector3(0, 15, -20));
             camera.attachControl(this.canvas, false, false);
@@ -113,13 +138,17 @@ class Editor extends Component {
 
             light.intensity = 1;
 
-            const ground = BABYLON.Mesh.CreateGround(
+            this.ground = BABYLON.Mesh.CreateGround(
                 'ground1',
                 30,
                 30,
                 2,
                 scene
             );
+
+            const { ground } = this;
+
+            // ground.isPickable = false;
 
             ground.material = new BABYLON.StandardMaterial(
                 'groundTexture',
@@ -148,6 +177,83 @@ class Editor extends Component {
         });
     };
 
+    createManipulator = selectedObject => {
+        const { scene, clearManipulator } = this;
+
+        clearManipulator();
+
+        this.manipulators = BABYLON.Mesh.CreateBox(
+            'manipulator_parent',
+            0.5,
+            scene
+        );
+
+        // make the mesh invisible since this will just be a parent node
+        this.manipulators.isVisible = false;
+        this.manipulators.position = selectedObject.pos;
+
+        const x = BABYLON.MeshBuilder.CreateCylinder(
+            'manipulator_x',
+            { height: 0.5, diameterBottom: 0.25, diameterTop: 0 },
+            scene
+        );
+
+        x.metadata = { type: 'manipulator', axis: 'x' };
+        x.parent = this.manipulators;
+        x.material = new BABYLON.StandardMaterial(
+            'manipulator_x_material',
+            scene
+        );
+        x.material.diffuseColor = new BABYLON.Color3(0, 1, 0);
+        x.renderingGroupId = 1;
+        x.position = new BABYLON.Vector3(MANIPULATORS_SPREAD, 0, 0);
+        x.rotation = new BABYLON.Vector3(0, 0, -Math.PI / 2);
+
+        const y = BABYLON.MeshBuilder.CreateCylinder(
+            'manipulator_y',
+            { height: 0.5, diameterBottom: 0.25, diameterTop: 0 },
+            scene
+        );
+
+        y.metadata = { type: 'manipulator', axis: 'y' };
+        y.parent = this.manipulators;
+        y.material = new BABYLON.StandardMaterial(
+            'manipulator_y_material',
+            scene
+        );
+        y.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
+        y.renderingGroupId = 1;
+        y.position = new BABYLON.Vector3(0, MANIPULATORS_SPREAD, 0);
+
+        const z = BABYLON.MeshBuilder.CreateCylinder(
+            'manipulator_z',
+            { height: 0.5, diameterBottom: 0.25, diameterTop: 0 },
+            scene
+        );
+
+        z.metadata = { type: 'manipulator', axis: 'z' };
+        z.parent = this.manipulators;
+        z.material = new BABYLON.StandardMaterial(
+            'manipulator_z_material',
+            scene
+        );
+        z.material.diffuseColor = new BABYLON.Color3(0, 0, 1);
+        z.renderingGroupId = 1;
+        z.position = new BABYLON.Vector3(0, 0, MANIPULATORS_SPREAD);
+        z.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+    };
+
+    clearManipulator = () => {
+        if (this.manipulators) {
+            this.manipulators.getChildMeshes(false).forEach(mesh => {
+                mesh.dispose();
+            });
+
+            this.manipulators.dispose();
+            this.manipulators = null;
+        }
+    };
+
     initializeEngine = () => {
         const canvas = this.refs.editor;
 
@@ -165,6 +271,8 @@ class Editor extends Component {
         const { scene } = this;
 
         this.imageTarget = BABYLON.Mesh.CreatePlane('imageTarget', 25, scene);
+
+        this.imageTarget.isPickable = false;
 
         // scale width
         this.imageTarget.scaling.x = dimensions.width > dimensions.height
@@ -219,12 +327,90 @@ class Editor extends Component {
 
             const pick = scene.pick(scene.pointerX, scene.pointerY);
 
-            if (pick.hit && pick.pickedMesh.metadata) {
+            if (
+                pick.hit &&
+                pick.pickedMesh.metadata &&
+                pick.pickedMesh.metadata.type === 'object'
+            ) {
                 const { id } = pick.pickedMesh.metadata;
 
-                setSelectedObject(id);
+                if (id !== this.props.editor.selectedObject) {
+                    setSelectedObject(id);
+                }
             } else {
-                setSelectedObject(null);
+                if (this.props.editor.selectedObject) {
+                    setSelectedObject(null);
+                }
+            }
+        });
+
+        let clicked = false, axis = null;
+
+        editor.addEventListener('mousedown', () => {
+            const { scene } = this;
+
+            this.ground.isPickable = false;
+
+            const pick = scene.pick(scene.pointerX, scene.pointerY);
+
+            if (
+                pick.hit &&
+                pick.pickedMesh.metadata &&
+                pick.pickedMesh.metadata.type === 'manipulator'
+            ) {
+                clicked = true;
+
+                axis = pick.pickedMesh.metadata.axis;
+
+                this.camera.detachControl(this.canvas);
+            }
+
+            this.ground.isPickable = true;
+        });
+
+        editor.addEventListener('mousemove', () => {
+            if (clicked) {
+                const { scene } = this;
+                const { selectedObject, updateObjectPosition } = this.props;
+
+                const pick = scene.pick(scene.pointerX, scene.pointerY);
+
+                const { pickedPoint } = pick;
+
+                if (pickedPoint) {
+                    if (axis === 'x') {
+                        const newX = pickedPoint.x - MANIPULATORS_SPREAD;
+
+                        updateObjectPosition(selectedObject.id, {
+                            ...selectedObject.pos,
+                            x: newX
+                        });
+                    }
+                    if (axis === 'y') {
+                        const newY = pickedPoint.y - MANIPULATORS_SPREAD;
+
+                        updateObjectPosition(selectedObject.id, {
+                            ...selectedObject.pos,
+                            y: newY
+                        });
+                    }
+                    if (axis === 'z') {
+                        const newZ = pickedPoint.z - MANIPULATORS_SPREAD;
+
+                        updateObjectPosition(selectedObject.id, {
+                            ...selectedObject.pos,
+                            z: newZ
+                        });
+                    }
+                }
+            }
+        });
+
+        editor.addEventListener('mouseup', () => {
+            if (clicked) {
+                clicked = false;
+
+                this.camera.attachControl(this.canvas, null, null);
             }
         });
     }
@@ -267,6 +453,52 @@ class Editor extends Component {
                 );
             }
         }
+
+        // manipulators
+        const { createManipulator, clearManipulator } = this;
+
+        if (
+            newProps.editor.selectedObject &&
+            this.props.editor.selectedObject !== newProps.editor.selectedObject
+        ) {
+            const { selectedObject } = newProps;
+
+            createManipulator(selectedObject);
+        } else if (
+            newProps.editor.selectedObject === null &&
+            this.props.editor.selectedObject
+        ) {
+            clearManipulator();
+        }
+
+        // update positions
+        const differences = this.props.editor.objects.map((step, i) =>
+            step
+                .map(object => {
+                    const pair = _.find(newProps.editor.objects[i], [
+                        'id',
+                        object.id
+                    ]);
+
+                    if (pair && !_.isEqual(object.pos, pair.pos)) {
+                        return {
+                            ...object,
+                            pos: pair.pos
+                        };
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(object => object !== null)
+        );
+
+        const differencesFlattened = _.flatten(differences);
+
+        const { moveObject } = this;
+
+        differencesFlattened.forEach(object => {
+            moveObject(object.id, object.pos);
+        });
     }
 
     render() {
@@ -327,7 +559,8 @@ const mapStateToProps = state => {
         editor: state.editor,
         step: getCurrentStep(state.editor),
         objects: getCurrentObjects(state.editor),
-        imageTarget: getCurrentImageTarget(state.editor)
+        imageTarget: getCurrentImageTarget(state.editor),
+        selectedObject: getSelectedObject(state.editor)
     };
 };
 
@@ -344,7 +577,9 @@ const mapDispatchToProps = dispatch => {
         removeObject: id => dispatch(EditorActions.removeObject(id)),
         setImageTarget: (blob, dimensions) =>
             dispatch(EditorActions.setImageTarget(blob, dimensions)),
-        setSelectedObject: id => dispatch(EditorActions.setSelectedObject(id))
+        setSelectedObject: id => dispatch(EditorActions.setSelectedObject(id)),
+        updateObjectPosition: (id, pos) =>
+            dispatch(EditorActions.updateObjectPosition(id, pos))
     };
 };
 

@@ -20,3 +20,22 @@ export const getCurrentImageTarget = createSelector(
         return imageTargets[currentStepIndex];
     }
 );
+
+export const getSelectedObject = createSelector(
+    [editor => editor.objects, editor => editor.selectedObject],
+    (objects, selectedObject) => {
+        if (!selectedObject) {
+            return null;
+        }
+
+        for (let i = 0; i < objects.length; i++) {
+            for (let j = 0; j < objects[i].length; j++) {
+                if (objects[i][j].id === selectedObject) {
+                    return objects[i][j];
+                }
+            }
+        }
+
+        return null;
+    }
+);
