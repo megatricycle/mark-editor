@@ -1,0 +1,15 @@
+.HomeWrapper {
+  min-height: 100vh;
+  background: #e3e3e3;
+}
+
+.navbar {
+  position: fixed;
+  width: 100%;
+  z-index: 999;
+}
+
+.content {
+  padding-top: 5em;
+  padding-bottom: 1em;
+}

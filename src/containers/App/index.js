@@ -6,6 +6,7 @@ import { ConnectedRouter } from 'react-router-redux';
 import createStore, { history } from '../../redux';
 import Editor from '../Editor';
 import Login from '../Login';
+import HomeWrapper from '../../components/HomeWrapper';
 import './style.css';
 
 const store = createStore();
@@ -17,6 +18,7 @@ class App extends Component {
                 <ConnectedRouter history={history}>
                     <div>
                         <Route exact path="/" component={Login} />
+                        <Route path="/home" component={HomeWrapper} />
                         <Route path="/edit" component={Editor} />
                     </div>
                 </ConnectedRouter>

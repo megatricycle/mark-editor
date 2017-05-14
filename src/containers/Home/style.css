@@ -1,0 +1,15 @@
+.image-uploader-container {
+    display: flex !important;
+    align-items: center;
+}
+
+.image-uploader {
+    display: flex;
+    align-items: center;
+    color: rgba(0, 0, 0, 0.4);
+}
+
+.image-uploader > .label {
+    font-size: 1.2em;
+    margin-left: 0.5em;
+}
