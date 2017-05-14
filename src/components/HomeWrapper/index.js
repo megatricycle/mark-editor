@@ -3,6 +3,7 @@ import { Menu } from 'semantic-ui-react';
 import { Route } from 'react-router';
 
 import Home from '../../containers/Home';
+import Product from '../../containers/Product';
 import './style.css';
 
 class HomeWrapper extends Component {
@@ -18,7 +19,7 @@ class HomeWrapper extends Component {
                             push('/home');
                         }}
                     >
-                        Welcome, tricycle!
+                        MARK
                     </Menu.Item>
                     <Menu.Item
                         position="right"
@@ -29,12 +30,12 @@ class HomeWrapper extends Component {
                         Log out
                     </Menu.Item>
                 </Menu>
-                <div className="content">
+                <div className="home-content">
                     <Route exact path={`${basePath}`} component={Home} />
                     <Route
                         exact
-                        path={`${basePath}/products/:id`}
-                        render={() => <div>Products</div>}
+                        path={`${basePath}/products/:productId`}
+                        component={Product}
                     />
                 </div>
             </div>

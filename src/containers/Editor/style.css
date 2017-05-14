@@ -4,6 +4,10 @@
     display: flex;
 }
 
+.editor-container p {
+    margin: 1em 0 !important;
+}
+
 .editor {
     width: 80%;
     height: 100%;

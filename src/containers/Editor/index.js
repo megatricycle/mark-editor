@@ -34,7 +34,7 @@ class Editor extends Component {
         return new Promise(resolve => {
             BABYLON.SceneLoader.ImportMesh(
                 '',
-                'models/' + asset.name + '/',
+                '/models/' + asset.name + '/',
                 asset.modelFilename,
                 scene,
                 newMeshes => {

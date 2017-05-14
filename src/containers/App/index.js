@@ -19,7 +19,10 @@ class App extends Component {
                     <div>
                         <Route exact path="/" component={Login} />
                         <Route path="/home" component={HomeWrapper} />
-                        <Route path="/edit" component={Editor} />
+                        <Route
+                            path="/products/:productId/manuals/:manualId/edit"
+                            component={Editor}
+                        />
                     </div>
                 </ConnectedRouter>
             </Provider>
