@@ -36,8 +36,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "lint": "eslint -c .eslintrc.json src/**/*.js",
-    "fixcode": "eslint -c .eslintrc.json --fix src/**/*.js",
+    "lint": "eslint -c .eslintrc.json 'src/**/*.js'",
+    "fixcode": "eslint -c .eslintrc.json --fix 'src/**/*.js'",
     "precommit": "lint-staged",
     "prepush": "lint-staged",
     "prettify": "prettier --tab-width 4 --single-quote --write \"./src/**/*.js\""
