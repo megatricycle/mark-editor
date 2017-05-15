@@ -4,6 +4,7 @@ import Immutable from 'seamless-immutable';
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({
+    reset: null,
     setProductName: ['productName'],
     addStep: null,
     setStepIndex: ['i'],
@@ -41,6 +42,8 @@ export const INITIAL_STATE = Immutable({
 });
 
 /* ------------- Reducers ------------- */
+
+export const reset = state => state.merge(INITIAL_STATE);
 
 export const setProductName = (state, { productName }) =>
     state.merge({ productName });
@@ -132,6 +135,7 @@ export const updateObjectPosition = (state, { id, pos }) =>
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
+    [Types.RESET]: reset,
     [Types.SET_PRODUCT_NAME]: setProductName,
     [Types.ADD_STEP]: addStep,
     [Types.SET_STEP_INDEX]: setStepIndex,

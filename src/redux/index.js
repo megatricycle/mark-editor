@@ -32,6 +32,7 @@ export default () => {
         app: require('./app').reducer,
         editor: require('./editor').reducer,
         user: require('./user').reducer,
+        product: require('./product').reducer,
         router: routerReducer
     });
 

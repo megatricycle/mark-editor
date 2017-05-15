@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import FontAwesome from 'react-fontawesome';
 import {
     Container,
@@ -8,15 +9,24 @@ import {
     Image,
     Form,
     Grid,
-    Divider,
     Modal
 } from 'semantic-ui-react';
 
+import ProductActions from '../../redux/product';
 import './style.css';
 
 class Home extends Component {
+    componentDidMount() {
+        const { userId } = this.props.user.user;
+        const { requestProducts } = this.props;
+
+        requestProducts(userId);
+    }
+
     render() {
         const { push } = this.props.history;
+        const { products } = this.props.product;
+        const { user } = this.props.user;
 
         const addProductModal = (
             <Modal
@@ -71,27 +81,40 @@ class Home extends Component {
         return (
             <div className="Home">
                 <Container text>
-                    <Header>Hi, tricycle! Here are your products.</Header>
+                    <Header>
+                        Hi, {user.username}! Here are your products.
+                    </Header>
 
                     {addProductModal}
 
-                    <Divider />
-
                     <List selection verticalAlign="middle" divided size="big">
-                        <List.Item
-                            onClick={() => {
-                                push('/home/products/2');
-                            }}
-                        >
-                            <Image avatar src="http://placehold.it/150x150" />
-                            <List.Content>
-                                <List.Header>Hi</List.Header>
-                                <p className="home-subscribers">
-                                    <strong>2003</strong> subscribers
-                                </p>
-                                <p>I'm a subttitle</p>
-                            </List.Content>
-                        </List.Item>
+                        {products.map(product => (
+                            <List.Item
+                                key={product.id}
+                                onClick={() => {
+                                    push(`/home/products/${product.id}`);
+                                }}
+                            >
+                                <Image
+                                    avatar
+                                    src="http://placehold.it/150x150"
+                                />
+                                <List.Content>
+                                    <List.Header>{product.name}</List.Header>
+                                    <p className="home-subscribers">
+                                        <strong>
+                                            {product.subscribersCount}
+                                        </strong>
+                                        {' '}
+                                        subscriber
+                                        {product.subscribersCount === 1
+                                            ? ''
+                                            : 's'}
+                                    </p>
+                                    <p>{product.descriptionSummary}</p>
+                                </List.Content>
+                            </List.Item>
+                        ))}
                     </List>
                 </Container>
             </div>
@@ -99,4 +122,18 @@ class Home extends Component {
     }
 }
 
-export default Home;
+const mapStateToProps = state => {
+    return {
+        user: state.user,
+        product: state.product
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        requestProducts: userId =>
+            dispatch(ProductActions.requestProducts(userId))
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

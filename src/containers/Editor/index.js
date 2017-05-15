@@ -18,15 +18,13 @@ import './style.css';
 const MANIPULATORS_SPREAD = 1;
 
 class Editor extends Component {
-    constructor() {
-        super();
-
+    init = () => {
         this.assets = {};
         this.objects = [];
         this.imageTarget = null;
         this.manipulators = null;
         this.ground = null;
-    }
+    };
 
     loadAsset = asset => {
         const { scene } = this;
@@ -170,6 +168,10 @@ class Editor extends Component {
     destroyObject = id => {
         const object = this.objects.filter(object => object.id === id)[0];
 
+        if (!object) {
+            return;
+        }
+
         this.objects = this.objects.filter(object => object.id !== id);
 
         object.meshes.forEach(mesh => {
@@ -312,6 +314,14 @@ class Editor extends Component {
         this.imageTarget.dispose();
         this.imageTarget = null;
     };
+
+    componentWillMount() {
+        const { reset } = this.props;
+        const { init } = this;
+
+        reset();
+        init();
+    }
 
     componentDidMount() {
         const { initializeEngine } = this;
@@ -566,6 +576,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
+        reset: () => dispatch(EditorActions.reset()),
         setProductName: productName =>
             dispatch(EditorActions.setProductName(productName)),
         addStep: () => dispatch(EditorActions.addStep()),

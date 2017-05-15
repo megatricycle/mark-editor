@@ -19,7 +19,10 @@ const create = (baseURL = 'http://192.168.1.4:8000') => {
                 password,
                 userType: 'provider'
             }),
-        logout: () => api.post('/session/logout')
+        logout: () => api.post('/session/logout'),
+        getProducts: (userId) => api.get(`/users/${userId}/products`),
+        getProduct: (productId) => api.get(`/products/${productId}`),
+        getManuals: (productId) => api.get(`/products/${productId}/manuals`)
     };
 };
 
