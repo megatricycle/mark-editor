@@ -1,23 +1,62 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import { Form, Menu, Grid, Segment, Button, Header } from 'semantic-ui-react';
 
+import UserActions from '../../redux/user';
 import './style.css';
 
 class Login extends Component {
+    handleLoginSubmit = e => {
+        const { requestLogin } = this.props;
+
+        e.preventDefault();
+
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+
+        requestLogin(username, password);
+    };
+
+    checkUser = isLoggedIn => {
+        const { push } = this.props.history;
+
+        if (isLoggedIn) {
+            push('/home');
+        }
+    };
+
+    componentWillMount() {
+        const { isLoggedIn } = this.props.user;
+        const { checkUser } = this;
+
+        checkUser(isLoggedIn);
+    }
+
+    componentWillReceiveProps(newProps) {
+        const { isLoggedIn } = newProps.user;
+        const { checkUser } = this;
+
+        checkUser(isLoggedIn);
+    }
+
     render() {
+        const { handleLoginSubmit } = this;
+
         return (
             <div className="Login">
                 <Menu inverted>
                     <Menu.Item position="right">
-                        <Form size="mini">
+                        <Form size="mini" onSubmit={handleLoginSubmit}>
                             <Form.Group widths="equal">
                                 <Form.Field
                                     control="input"
                                     placeholder="Username"
+                                    name="username"
                                 />
                                 <Form.Field
                                     control="input"
                                     placeholder="Password"
+                                    name="password"
                                     type="password"
                                 />
                                 <Form.Button content="Log in" size="mini" />
@@ -58,4 +97,17 @@ class Login extends Component {
     }
 }
 
-export default Login;
+const mapStateToProps = state => {
+    return {
+        user: state.user
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        requestLogin: (username, password) =>
+            dispatch(UserActions.requestLogin(username, password))
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login);

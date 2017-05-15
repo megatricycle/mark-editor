@@ -1,33 +1,50 @@
 import React, { Component } from 'react';
-import { Provider } from 'react-redux';
+import { connect } from 'react-redux';
 import { Route } from 'react-router';
 import { ConnectedRouter } from 'react-router-redux';
 
-import createStore, { history } from '../../redux';
+import { history } from '../../redux';
+import UserActions from '../../redux/user';
 import Editor from '../Editor';
 import Login from '../Login';
-import HomeWrapper from '../../components/HomeWrapper';
+import HomeWrapper from '../HomeWrapper';
 import './style.css';
 
-const store = createStore();
-
 class App extends Component {
+    componentDidMount() {
+        const { requestWhoAmI } = this.props;
+
+        requestWhoAmI();
+    }
+
     render() {
-        return (
-            <Provider store={store}>
-                <ConnectedRouter history={history}>
-                    <div>
-                        <Route exact path="/" component={Login} />
-                        <Route path="/home" component={HomeWrapper} />
-                        <Route
-                            path="/products/:productId/manuals/:manualId/edit"
-                            component={Editor}
-                        />
-                    </div>
-                </ConnectedRouter>
-            </Provider>
-        );
+        const { isStarted } = this.props.app;
+
+        return isStarted
+            ? <ConnectedRouter history={history}>
+                  <div>
+                      <Route exact path="/" component={Login} />
+                      <Route path="/home" component={HomeWrapper} />
+                      <Route
+                          path="/products/:productId/manuals/:manualId/edit"
+                          component={Editor}
+                      />
+                  </div>
+              </ConnectedRouter>
+            : <div />;
     }
 }
 
-export default App;
+const mapStateToProps = state => {
+    return {
+        app: state.app
+    };
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        requestWhoAmI: () => dispatch(UserActions.requestWhoAmI())
+    };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
