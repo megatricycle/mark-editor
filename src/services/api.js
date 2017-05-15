@@ -12,14 +12,16 @@ const create = (baseURL = 'http://192.168.1.4:8000') => {
     });
 
     return {
-        whoami: () =>
-            api.get('/session/whoami'),
+        whoami: () => api.get('/session/whoami'),
         login: (username, password) =>
-            api.post('/session/login', { username, password }),
-        logout: () =>
-            api.post('/session/logout'),
+            api.post('/session/login', {
+                username,
+                password,
+                userType: 'provider'
+            }),
+        logout: () => api.post('/session/logout')
     };
-}
+};
 
 export default {
     create
