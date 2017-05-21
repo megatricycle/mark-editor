@@ -61,7 +61,7 @@ class Product extends Component {
                             <div
                                 className="product-img"
                                 style={{
-                                    backgroundImage: `url(http://placehold.it/150x150)`
+                                    backgroundImage: `url(${product.image})`
                                 }}
                             />
                         </Grid.Column>

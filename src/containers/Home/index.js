@@ -174,10 +174,7 @@ class Home extends Component {
                                     push(`/home/products/${product.id}`);
                                 }}
                             >
-                                <SemanticImage
-                                    avatar
-                                    src="http://placehold.it/150x150"
-                                />
+                                <SemanticImage avatar src={product.image} />
                                 <List.Content>
                                     <List.Header>{product.name}</List.Header>
                                     <p className="home-subscribers">
