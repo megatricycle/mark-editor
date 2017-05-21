@@ -17,6 +17,17 @@ class Login extends Component {
         requestLogin(username, password);
     };
 
+    handleSignupSubmit = e => {
+        const { requestSignup } = this.props;
+
+        e.preventDefault();
+
+        const username = e.target.username.value;
+        const password = e.target.password.value;
+
+        requestSignup(username, password);
+    };
+
     checkUser = isLoggedIn => {
         const { push } = this.props.history;
 
@@ -40,7 +51,7 @@ class Login extends Component {
     }
 
     render() {
-        const { handleLoginSubmit } = this;
+        const { handleLoginSubmit, handleSignupSubmit } = this;
 
         return (
             <div className="Login">
@@ -77,12 +88,16 @@ class Login extends Component {
                         </Grid.Column>
                         <Grid.Column width={8} className="sign-up-container">
                             <Segment raised>
-                                <Form>
-                                    <Header>Create an account</Header>
-                                    <Form.Input label="Username" />
+                                <Form onSubmit={handleSignupSubmit}>
+                                    <Header>Create a provider account</Header>
+                                    <Form.Input
+                                        label="Username"
+                                        name="username"
+                                    />
                                     <Form.Input
                                         label="Password"
                                         type="password"
+                                        name="password"
                                     />
                                     <Button type="submit" primary fluid>
                                         Sign up
@@ -106,7 +121,9 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         requestLogin: (username, password) =>
-            dispatch(UserActions.requestLogin(username, password))
+            dispatch(UserActions.requestLogin(username, password)),
+        requestSignup: (username, password) =>
+            dispatch(UserActions.requestSignup(username, password))
     };
 };
 

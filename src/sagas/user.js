@@ -44,3 +44,16 @@ export function* logout(api) {
         // @TODO: handle login error
     }
 }
+
+export function* signup(api, { username, password }) {
+    const response = yield call(api.signup, username, password);
+
+    if (response.ok) {
+        const { username, id } = response.data.user;
+
+        yield put(UserActions.login(username, id));
+    } else {
+        // const { error } = response.data;
+        // @TODO: handle login error
+    }
+}

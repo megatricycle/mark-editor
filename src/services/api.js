@@ -20,9 +20,15 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
                 userType: 'provider'
             }),
         logout: () => api.post('/session/logout'),
-        getProducts: (userId) => api.get(`/users/${userId}/products`),
-        getProduct: (productId) => api.get(`/products/${productId}`),
-        getManuals: (productId) => api.get(`/products/${productId}/manuals`)
+        getProducts: userId => api.get(`/users/${userId}/products`),
+        getProduct: productId => api.get(`/products/${productId}`),
+        getManuals: productId => api.get(`/products/${productId}/manuals`),
+        signup: (username, password) =>
+            api.post(`/users/signup`, {
+                username,
+                password,
+                userType: 'provider'
+            })
     };
 };
 

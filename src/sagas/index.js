@@ -4,7 +4,7 @@ import API from '../services/api';
 import { UserTypes } from '../redux/user';
 import { ProductTypes } from '../redux/product';
 
-import { whoami, login, logout } from './user';
+import { whoami, login, logout, signup } from './user';
 import { getProducts, getProduct, getManuals } from './product';
 
 const api = API.create();
@@ -16,6 +16,7 @@ export default function* root() {
         takeLatest(UserTypes.REQUEST_LOGOUT, logout, api),
         takeLatest(ProductTypes.REQUEST_PRODUCTS, getProducts, api),
         takeLatest(ProductTypes.REQUEST_PRODUCT, getProduct, api),
-        takeLatest(ProductTypes.REQUEST_MANUALS, getManuals, api)
+        takeLatest(ProductTypes.REQUEST_MANUALS, getManuals, api),
+        takeLatest(UserTypes.REQUEST_SIGNUP, signup, api)
     ]);
 }
