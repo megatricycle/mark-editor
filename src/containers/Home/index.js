@@ -20,7 +20,8 @@ class Home extends Component {
         super();
 
         this.state = {
-            image: null
+            image: null,
+            addProductModalOpen: false
         };
     }
 
@@ -59,14 +60,45 @@ class Home extends Component {
     };
 
     handleAddProduct = e => {
+        const { requestAddProduct } = this.props;
+        const { userId } = this.props.user.user;
+        const { uploader } = this.refs;
+
         e.preventDefault();
 
-        // const name = e.target.name.value;
-        // const descriptionSummary = e.target.descriptionSummary.value;
-        // const descriptionDetail = e.target.descriptionDetail.value;
+        const name = e.target.name.value;
+        const descriptionSummary = e.target.descriptionSummary.value;
+        const descriptionDetail = e.target.descriptionDetail.value;
+        const image = uploader.files[0];
 
-        // @TODO: api call here
+        requestAddProduct(
+            userId,
+            name,
+            descriptionSummary,
+            descriptionDetail,
+            image
+        );
     };
+
+    handleOpenAddProductModal = () => {
+        this.setState({ addProductModalOpen: true });
+    };
+
+    handleCloseAddProductModal = () => {
+        this.setState({ image: null, addProductModalOpen: false });
+    };
+
+    componentWillReceiveProps(newProps) {
+        const { handleCloseAddProductModal } = this;
+        const prevCreatingProduct = this.props.product.isCreatingProduct;
+        const newCreatingProduct = newProps.product.isCreatingProduct;
+
+        // @TODO: check for error
+        if (prevCreatingProduct && !newCreatingProduct) {
+            handleCloseAddProductModal();
+            document.getElementById('add-product-form').reset();
+        }
+    }
 
     componentDidMount() {
         const { userId } = this.props.user.user;
@@ -83,18 +115,29 @@ class Home extends Component {
         const { push } = this.props.history;
         const { products } = this.props.product;
         const { user } = this.props.user;
+        const { addProductModalOpen } = this.state;
         const { image } = this.state;
         const {
             openFileUploader,
             handleAddProduct,
-            submitAddProductForm
+            submitAddProductForm,
+            handleOpenAddProductModal,
+            handleCloseAddProductModal
         } = this;
 
         const addProductModal = (
             <Modal
                 trigger={
-                    <Button primary content="Add" icon="plus" size="tiny" />
+                    <Button
+                        primary
+                        content="Add"
+                        icon="plus"
+                        size="tiny"
+                        onClick={handleOpenAddProductModal}
+                    />
                 }
+                open={addProductModalOpen}
+                onClose={handleCloseAddProductModal}
             >
                 <Modal.Header>Add a Product</Modal.Header>
                 <Modal.Content>
@@ -208,7 +251,23 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         requestProducts: userId =>
-            dispatch(ProductActions.requestProducts(userId))
+            dispatch(ProductActions.requestProducts(userId)),
+        requestAddProduct: (
+            userId,
+            name,
+            descriptionSummary,
+            descriptionDetail,
+            image
+        ) =>
+            dispatch(
+                ProductActions.requestAddProduct(
+                    userId,
+                    name,
+                    descriptionSummary,
+                    descriptionDetail,
+                    image
+                )
+            )
     };
 };
 

@@ -37,3 +37,26 @@ export function* getManuals(api, { productId }) {
         // @TODO: error handling
     }
 }
+
+export function* addProduct(
+    api,
+    { userId, name, descriptionSummary, descriptionDetail, image }
+) {
+    const response = yield call(
+        api.addProduct,
+        userId,
+        name,
+        descriptionSummary,
+        descriptionDetail,
+        image
+    );
+
+    if (response.ok) {
+        const product = response.data;
+
+        yield put(ProductActions.doneAddProduct());
+        yield put(ProductActions.setProduct(product));
+    } else {
+        // @TODO: error handling
+    }
+}

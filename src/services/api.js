@@ -28,7 +28,21 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
                 username,
                 password,
                 userType: 'provider'
-            })
+            }),
+        addProduct: (userId, name, descriptionSummary, descriptionDetail, image) => {
+            const data = new FormData();
+
+            data.append('name', name);
+            data.append('descriptionSummary', descriptionSummary);
+            data.append('descriptionDetail', descriptionDetail);
+            data.append('image', image);
+
+            return api.post(`/users/${userId}/products`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+        }
     };
 };
 

@@ -11,7 +11,15 @@ const { Types, Creators } = createActions({
     requestProduct: ['productId'],
     setProduct: ['product'],
     requestManuals: ['productId'],
-    setManuals: ['productId', 'manuals']
+    setManuals: ['productId', 'manuals'],
+    requestAddProduct: [
+        'userId',
+        'name',
+        'descriptionSummary',
+        'descriptionDetail',
+        'image'
+    ],
+    doneAddProduct: null
 });
 
 export const ProductTypes = Types;
@@ -21,7 +29,8 @@ export default Creators;
 
 export const INITIAL_STATE = Immutable({
     products: [],
-    selectedProduct: null
+    selectedProduct: null,
+    isCreatingProduct: false
 });
 
 /* ------------- Reducers ------------- */
@@ -63,11 +72,19 @@ export const setManuals = (state, { productId, manuals }) =>
         })
     });
 
+export const requestAddProduct = state =>
+    state.merge({ isCreatingProduct: true });
+
+export const doneAddProduct = state =>
+    state.merge({ isCreatingProduct: false });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_PRODUCTS]: setProducts,
     [Types.SELECT_PRODUCT]: selectProduct,
     [Types.SET_PRODUCT]: setProduct,
-    [Types.SET_MANUALS]: setManuals
+    [Types.SET_MANUALS]: setManuals,
+    [Types.REQUEST_ADD_PRODUCT]: requestAddProduct,
+    [Types.DONE_ADD_PRODUCT]: doneAddProduct
 });
