@@ -15,6 +15,52 @@ import ProductActions from '../../redux/product';
 import './style.css';
 
 class Product extends Component {
+    constructor() {
+        super();
+
+        this.state = {
+            addManualModalOpen: false
+        };
+    }
+
+    handleOpenAddManualModal = () => {
+        this.setState({ addManualModalOpen: true });
+    };
+
+    handleCloseAddManualModal = () => {
+        this.setState({ addManualModalOpen: false });
+    };
+
+    submitAddManualForm = () => {
+        const addManualForm = document.getElementById('add-manual-form');
+
+        addManualForm.dispatchEvent(new Event('submit'));
+    };
+
+    handleAddManual = e => {
+        const { requestAddManual } = this.props;
+        const { id: productId } = this.props.selectedProduct;
+
+        e.preventDefault();
+
+        const name = e.target.name.value;
+        const description = e.target.description.value;
+
+        requestAddManual(productId, name, description);
+    };
+
+    componentWillReceiveProps(newProps) {
+        const { handleCloseAddManualModal } = this;
+        const prevCreatingManual = this.props.product.isCreatingManual;
+        const newCreatingManual = newProps.product.isCreatingManual;
+
+        // @TODO: check for error
+        if (prevCreatingManual && !newCreatingManual) {
+            handleCloseAddManualModal();
+            document.getElementById('add-manual-form').reset();
+        }
+    }
+
     componentWillMount() {
         const { productId } = this.props.match.params;
         const { selectProduct, requestProduct } = this.props;
@@ -26,6 +72,13 @@ class Product extends Component {
     render() {
         const { push } = this.props.history;
         const { selectedProduct: product } = this.props;
+        const { addManualModalOpen } = this.state;
+        const {
+            handleOpenAddManualModal,
+            handleCloseAddManualModal,
+            submitAddManualForm,
+            handleAddManual
+        } = this;
 
         if (!product) {
             return <div />;
@@ -34,21 +87,36 @@ class Product extends Component {
         const addManualModal = (
             <Modal
                 trigger={
-                    <Button primary content="Add" icon="plus" size="tiny" />
+                    <Button
+                        primary
+                        content="Add"
+                        icon="plus"
+                        size="tiny"
+                        onClick={handleOpenAddManualModal}
+                    />
                 }
+                open={addManualModalOpen}
+                onClose={handleCloseAddManualModal}
             >
                 <Modal.Header>Add a Manual</Modal.Header>
                 <Modal.Content>
-                    <Form>
-                        <Form.Input label="Title" placeholder="Manual Title" />
+                    <Form id="add-manual-form" onSubmit={handleAddManual}>
+                        <Form.Input
+                            label="Title"
+                            placeholder="Manual Title"
+                            name="name"
+                        />
                         <Form.TextArea
                             label="Description"
                             placeholder="Manual Description"
+                            name="description"
                         />
                     </Form>
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button primary>Submit</Button>
+                    <Button primary onClick={submitAddManualForm}>
+                        Submit
+                    </Button>
                 </Modal.Actions>
             </Modal>
         );
@@ -113,7 +181,8 @@ class Product extends Component {
 
 const mapStateToProps = state => {
     return {
-        selectedProduct: getSelectedProduct(state.product)
+        selectedProduct: getSelectedProduct(state.product),
+        product: state.product
     };
 };
 
@@ -122,7 +191,11 @@ const mapDispatchToProps = dispatch => {
         requestProduct: productId =>
             dispatch(ProductActions.requestProduct(productId)),
         selectProduct: productId =>
-            dispatch(ProductActions.selectProduct(productId))
+            dispatch(ProductActions.selectProduct(productId)),
+        requestAddManual: (productId, name, description) =>
+            dispatch(
+                ProductActions.requestAddManual(productId, name, description)
+            )
     };
 };
 

@@ -42,7 +42,12 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-        }
+        },
+        addManual: (productId, name, description) =>
+            api.post(`/products/${productId}/manuals`, {
+                name,
+                summary: description
+            })
     };
 };
 

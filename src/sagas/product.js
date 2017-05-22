@@ -60,3 +60,16 @@ export function* addProduct(
         // @TODO: error handling
     }
 }
+
+export function* addManual(api, { productId, name, description }) {
+    const response = yield call(api.addManual, productId, name, description);
+
+    if (response.ok) {
+        const manual = response.data;
+
+        yield put(ProductActions.doneAddManual());
+        yield put(ProductActions.setManual(productId, manual));
+    } else {
+        // @TODO: error handling
+    }
+}

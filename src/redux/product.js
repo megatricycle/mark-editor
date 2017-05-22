@@ -19,7 +19,10 @@ const { Types, Creators } = createActions({
         'descriptionDetail',
         'image'
     ],
-    doneAddProduct: null
+    doneAddProduct: null,
+    requestAddManual: ['productId', 'name', 'description'],
+    doneAddManual: null,
+    setManual: ['productId', 'manual']
 });
 
 export const ProductTypes = Types;
@@ -30,7 +33,8 @@ export default Creators;
 export const INITIAL_STATE = Immutable({
     products: [],
     selectedProduct: null,
-    isCreatingProduct: false
+    isCreatingProduct: false,
+    isCreatingManual: false
 });
 
 /* ------------- Reducers ------------- */
@@ -78,6 +82,44 @@ export const requestAddProduct = state =>
 export const doneAddProduct = state =>
     state.merge({ isCreatingProduct: false });
 
+export const requestAddManual = state =>
+    state.merge({ isCreatingManual: true });
+
+export const doneAddManual = state => state.merge({ isCreatingManual: false });
+
+export const setManual = (state, { productId, manual }) => {
+    const product = _.find(state.products, ['id', productId]);
+
+    if (product) {
+        const updatedProducts = state.products.map(currentProduct => {
+            if (currentProduct.id === productId) {
+                const currentManual = _.find(currentProduct.manuals, [
+                    'id',
+                    manual.id
+                ]);
+
+                return {
+                    ...currentProduct,
+                    manuals: currentManual
+                        ? currentProduct.manuals.map(
+                              currentManualIterate =>
+                                  (currentManualIterate.id === manual.id
+                                      ? manual
+                                      : currentManualIterate)
+                          )
+                        : [...currentProduct.manuals, manual]
+                };
+            }
+
+            return currentProduct;
+        });
+
+        return state.merge({ products: updatedProducts });
+    }
+
+    return state.merge(state);
+};
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -86,5 +128,8 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_PRODUCT]: setProduct,
     [Types.SET_MANUALS]: setManuals,
     [Types.REQUEST_ADD_PRODUCT]: requestAddProduct,
-    [Types.DONE_ADD_PRODUCT]: doneAddProduct
+    [Types.DONE_ADD_PRODUCT]: doneAddProduct,
+    [Types.REQUEST_ADD_MANUAL]: requestAddManual,
+    [Types.DONE_ADD_MANUAL]: doneAddManual,
+    [Types.SET_MANUAL]: setManual
 });
