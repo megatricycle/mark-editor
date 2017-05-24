@@ -7,12 +7,14 @@ import EditorSideBar from '../../components/EditorSideBar';
 import ObjectsBar from '../../components/ObjectsBar';
 import ImageTargetBar from '../../components/ImageTargetBar';
 import EditorActions from '../../redux/editor';
+import ProductActions from '../../redux/product';
 import {
     getCurrentStep,
     getCurrentObjects,
     getCurrentImageTarget,
     getSelectedObject
 } from '../../selectors/editor';
+import { getManual } from '../../selectors/product';
 import './style.css';
 
 const MANIPULATORS_SPREAD = 1;
@@ -257,12 +259,22 @@ class Editor extends Component {
     };
 
     initializeEngine = () => {
+        const {
+            mergeManualToEditor,
+            requestFetchImagesBase64,
+            selectedManual
+        } = this.props;
         const canvas = this.refs.editor;
 
         this.canvas = canvas;
         this.engine = new BABYLON.Engine(canvas, true);
 
         this.createMainScene().then(() => {
+            mergeManualToEditor(selectedManual);
+            requestFetchImagesBase64(
+                selectedManual.steps.map(step => step.imageTarget)
+            );
+
             this.engine.runRenderLoop(() => {
                 this.scene.render();
             });
@@ -315,15 +327,7 @@ class Editor extends Component {
         this.imageTarget = null;
     };
 
-    componentWillMount() {
-        const { reset } = this.props;
-        const { init } = this;
-
-        reset();
-        init();
-    }
-
-    componentDidMount() {
+    onCanvasMount = () => {
         const { initializeEngine } = this;
         const { setProductName, setSelectedObject } = this.props;
         const { editor } = this.refs;
@@ -423,9 +427,30 @@ class Editor extends Component {
                 this.camera.attachControl(this.canvas, null, null);
             }
         });
+    };
+
+    componentWillMount() {
+        const { reset } = this.props;
+        const { init } = this;
+
+        reset();
+        init();
     }
 
     componentWillReceiveProps(newProps) {
+        const { isStarted } = this.props.editor;
+
+        if (!isStarted) {
+            const { selectedManual: oldSelectedManual, start } = this.props;
+            const { selectedManual: newSelectedManual } = newProps;
+
+            if (oldSelectedManual === null && newSelectedManual) {
+                start();
+            }
+
+            return;
+        }
+
         // add/remove objects
         const { createAsset, destroyObject } = this;
 
@@ -511,8 +536,30 @@ class Editor extends Component {
         });
     }
 
+    componentDidMount() {
+        const { selectedProduct, start, requestProductAndManual } = this.props;
+        const { productId, manualId } = this.props.match.params;
+
+        if (!selectedProduct) {
+            requestProductAndManual(productId, manualId);
+        } else {
+            start();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        const { isStarted: oldIsStarted } = prevProps.editor;
+        const { isStarted: newIsStarted } = this.props.editor;
+        const { onCanvasMount } = this;
+
+        if (!oldIsStarted && newIsStarted) {
+            onCanvasMount();
+        }
+    }
+
     render() {
         const {
+            isStarted,
             productName,
             steps,
             currentStepIndex,
@@ -535,47 +582,58 @@ class Editor extends Component {
 
         const numberOfSteps = steps.length;
 
-        return (
-            <div className="editor-container">
-                <EditorSideBar
-                    step={step}
-                    productName={productName}
-                    numberOfSteps={numberOfSteps}
-                    currentStepIndex={currentStepIndex}
-                    assets={assets}
-                    addStep={addStep}
-                    setStepIndex={setStepIndex}
-                    setStepInstruction={setStepInstruction}
-                    addObject={addObject}
-                />
-                <ObjectsBar
-                    objects={objects}
-                    removeObject={removeObject}
-                    selectedObject={selectedObject}
-                    setSelectedObject={setSelectedObject}
-                />
-                <ImageTargetBar
-                    imageTarget={imageTarget}
-                    setImageTarget={setImageTarget}
-                />
-                <canvas ref="editor" className="editor" />
-            </div>
-        );
+        return isStarted
+            ? <div className="editor-container">
+                  <EditorSideBar
+                      step={step}
+                      productName={productName}
+                      numberOfSteps={numberOfSteps}
+                      currentStepIndex={currentStepIndex}
+                      assets={assets}
+                      addStep={addStep}
+                      setStepIndex={setStepIndex}
+                      setStepInstruction={setStepInstruction}
+                      addObject={addObject}
+                  />
+                  <ObjectsBar
+                      objects={objects}
+                      removeObject={removeObject}
+                      selectedObject={selectedObject}
+                      setSelectedObject={setSelectedObject}
+                  />
+                  <ImageTargetBar
+                      imageTarget={imageTarget}
+                      setImageTarget={setImageTarget}
+                      currentStepIndex={currentStepIndex}
+                  />
+                  <canvas ref="editor" className="editor" />
+              </div>
+            : <div>Loading spinner</div>;
     }
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state, props) => {
+    const { editor, product } = state;
+    const { productId, manualId } = props.match.params;
+
     return {
-        editor: state.editor,
-        step: getCurrentStep(state.editor),
-        objects: getCurrentObjects(state.editor),
-        imageTarget: getCurrentImageTarget(state.editor),
-        selectedObject: getSelectedObject(state.editor)
+        editor: editor,
+        step: getCurrentStep(editor),
+        objects: getCurrentObjects(editor),
+        imageTarget: getCurrentImageTarget(editor),
+        selectedObject: getSelectedObject(editor),
+        selectedProduct: null,
+        selectedManual: getManual(
+            product.products,
+            parseInt(productId, 10),
+            parseInt(manualId, 10)
+        )
     };
 };
 
 const mapDispatchToProps = dispatch => {
     return {
+        start: () => dispatch(EditorActions.start()),
         reset: () => dispatch(EditorActions.reset()),
         setProductName: productName =>
             dispatch(EditorActions.setProductName(productName)),
@@ -586,11 +644,19 @@ const mapDispatchToProps = dispatch => {
         addObject: (id, name, img, pos) =>
             dispatch(EditorActions.addObject(id, name, img, pos)),
         removeObject: id => dispatch(EditorActions.removeObject(id)),
-        setImageTarget: (blob, dimensions) =>
-            dispatch(EditorActions.setImageTarget(blob, dimensions)),
+        setImageTarget: (stepIndex, blob, dimensions) =>
+            dispatch(EditorActions.setImageTarget(stepIndex, blob, dimensions)),
         setSelectedObject: id => dispatch(EditorActions.setSelectedObject(id)),
         updateObjectPosition: (id, pos) =>
-            dispatch(EditorActions.updateObjectPosition(id, pos))
+            dispatch(EditorActions.updateObjectPosition(id, pos)),
+        requestProductAndManual: (productId, manualId) =>
+            dispatch(
+                ProductActions.requestProductAndManual(productId, manualId)
+            ),
+        mergeManualToEditor: manual =>
+            dispatch(EditorActions.mergeManualToEditor(manual)),
+        requestFetchImagesBase64: imageURLs =>
+            dispatch(EditorActions.requestFetchImagesBase64(imageURLs))
     };
 };
 

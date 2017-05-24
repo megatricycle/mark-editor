@@ -73,3 +73,29 @@ export function* addManual(api, { productId, name, description }) {
         // @TODO: error handling
     }
 }
+
+export function* getManual(api, { productId, manualId }) {
+    const response = yield call(api.getManual, productId, manualId);
+
+    if (response.ok) {
+        const manual = response.data;
+        yield put(ProductActions.setManual(parseInt(productId, 10), manual));
+    } else {
+        // @TODO: error handling
+    }
+}
+
+export function* getProductAndManual(api, { productId, manualId }) {
+    const response = yield call(api.getProduct, productId);
+
+    if (response.ok) {
+        const product = response.data;
+
+        product.manuals = [];
+
+        yield put(ProductActions.setProduct(product));
+        yield put(ProductActions.requestManual(productId, manualId));
+    } else {
+        // @TODO: error handling
+    }
+}

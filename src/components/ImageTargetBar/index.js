@@ -11,7 +11,7 @@ class ImageTargetBar extends Component {
     };
 
     handleChangeImageTarget = e => {
-        const { setImageTarget } = this.props;
+        const { setImageTarget, currentStepIndex } = this.props;
 
         const image = e.target.files[0];
 
@@ -29,7 +29,7 @@ class ImageTargetBar extends Component {
                         height: img.naturalHeight
                     };
 
-                    setImageTarget(result, dimensions);
+                    setImageTarget(currentStepIndex, result, dimensions);
                 };
             };
 

@@ -11,6 +11,7 @@ const { Types, Creators } = createActions({
     requestProduct: ['productId'],
     setProduct: ['product'],
     requestManuals: ['productId'],
+    requestManual: ['productId', 'manualId'],
     setManuals: ['productId', 'manuals'],
     requestAddProduct: [
         'userId',
@@ -22,7 +23,8 @@ const { Types, Creators } = createActions({
     doneAddProduct: null,
     requestAddManual: ['productId', 'name', 'description'],
     doneAddManual: null,
-    setManual: ['productId', 'manual']
+    setManual: ['productId', 'manual'],
+    requestProductAndManual: ['productId', 'manualId']
 });
 
 export const ProductTypes = Types;
@@ -88,7 +90,7 @@ export const requestAddManual = state =>
 export const doneAddManual = state => state.merge({ isCreatingManual: false });
 
 export const setManual = (state, { productId, manual }) => {
-    const product = _.find(state.products, ['id', productId]);
+    const product = _.find(state.products, ['id', parseInt(productId, 10)]);
 
     if (product) {
         const updatedProducts = state.products.map(currentProduct => {

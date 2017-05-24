@@ -4,6 +4,7 @@ import Immutable from 'seamless-immutable';
 /* ------------- Types and Action Creators ------------- */
 
 const { Types, Creators } = createActions({
+    start: null,
     reset: null,
     setProductName: ['productName'],
     addStep: null,
@@ -11,9 +12,12 @@ const { Types, Creators } = createActions({
     setStepInstruction: ['i', 'instruction'],
     addObject: ['id', 'name', 'img', 'pos'],
     removeObject: ['id'],
-    setImageTarget: ['blob', 'dimensions'],
+    setImageTarget: ['stepIndex', 'blob', 'dimensions'],
+    setImageTargets: ['imageTargets'],
     setSelectedObject: ['id'],
-    updateObjectPosition: ['id', 'pos']
+    updateObjectPosition: ['id', 'pos'],
+    mergeManualToEditor: ['manual'],
+    requestFetchImagesBase64: ['imageURLs']
 });
 
 export const EditorTypes = Types;
@@ -22,6 +26,7 @@ export default Creators;
 /* ------------- Initial State ------------- */
 
 export const INITIAL_STATE = Immutable({
+    isStarted: false,
     steps: [
         {
             instruction: ''
@@ -42,6 +47,8 @@ export const INITIAL_STATE = Immutable({
 });
 
 /* ------------- Reducers ------------- */
+
+export const start = state => state.merge({ isStarted: true });
 
 export const reset = state => state.merge(INITIAL_STATE);
 
@@ -103,16 +110,19 @@ export const removeObject = (state, { id }) =>
         selectedObject: null
     });
 
-export const setImageTarget = (state, { blob, dimensions }) =>
+export const setImageTarget = (state, { stepIndex, blob, dimensions }) =>
     state.merge({
         imageTargets: state.imageTargets.map((imageTarget, i) => {
-            if (state.currentStepIndex === i) {
+            if (stepIndex === i) {
                 return { blob, dimensions };
             }
 
             return imageTarget;
         })
     });
+
+export const setImageTargets = (state, { imageTargets }) =>
+    state.merge({ imageTargets });
 
 export const setSelectedObject = (state, { id }) =>
     state.merge({
@@ -132,9 +142,36 @@ export const updateObjectPosition = (state, { id, pos }) =>
         })
     });
 
+export const mergeManualToEditor = (state, { manual }) => {
+    const steps = manual.steps.length === 0
+        ? [{ instruction: '' }]
+        : manual.steps.map(step => ({ instruction: step.instruction }));
+
+    const objects = manual.steps.length === 0
+        ? [[]]
+        : manual.steps.map(step =>
+              step.objects.map(object => ({
+                  id: object.id,
+                  name: object.type,
+                  img: `/models/${object.type}/${object.type}.png`,
+                  pos: {
+                      x: object.x,
+                      y: object.y,
+                      z: object.z
+                  }
+              }))
+          );
+
+    return state.merge({
+        steps,
+        objects
+    });
+};
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
+    [Types.START]: start,
     [Types.RESET]: reset,
     [Types.SET_PRODUCT_NAME]: setProductName,
     [Types.ADD_STEP]: addStep,
@@ -143,6 +180,8 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.ADD_OBJECT]: addObject,
     [Types.REMOVE_OBJECT]: removeObject,
     [Types.SET_IMAGE_TARGET]: setImageTarget,
+    [Types.SET_IMAGE_TARGETS]: setImageTargets,
     [Types.SET_SELECTED_OBJECT]: setSelectedObject,
-    [Types.UPDATE_OBJECT_POSITION]: updateObjectPosition
+    [Types.UPDATE_OBJECT_POSITION]: updateObjectPosition,
+    [Types.MERGE_MANUAL_TO_EDITOR]: mergeManualToEditor
 });

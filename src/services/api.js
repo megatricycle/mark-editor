@@ -23,6 +23,7 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
         getProducts: userId => api.get(`/users/${userId}/products`),
         getProduct: productId => api.get(`/products/${productId}`),
         getManuals: productId => api.get(`/products/${productId}/manuals`),
+        getManual: (productId, manualId) => api.get(`/products/${productId}/manuals/${manualId}`),
         signup: (username, password) =>
             api.post(`/users/signup`, {
                 username,
@@ -47,7 +48,9 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
             api.post(`/products/${productId}/manuals`, {
                 name,
                 summary: description
-            })
+            }),
+        get: (url) =>
+            fetch(url)
     };
 };
 

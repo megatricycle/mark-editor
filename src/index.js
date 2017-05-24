@@ -7,7 +7,7 @@ import App from './containers/App';
 import './index.css';
 import 'semantic-ui-css/semantic.min.css';
 
-const store = createStore();
+export const store = createStore();
 
 ReactDOM.render(
     <Provider store={store}>
