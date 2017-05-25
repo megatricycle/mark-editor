@@ -122,7 +122,9 @@ export const setImageTarget = (state, { stepIndex, blob, dimensions }) =>
     });
 
 export const setImageTargets = (state, { imageTargets }) =>
-    state.merge({ imageTargets });
+    state.merge({
+        imageTargets: imageTargets.length > 0 ? imageTargets : [null]
+    });
 
 export const setSelectedObject = (state, { id }) =>
     state.merge({
