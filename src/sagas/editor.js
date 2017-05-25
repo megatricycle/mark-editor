@@ -1,3 +1,4 @@
+import { call, put } from 'redux-saga/effects';
 import EditorActions from '../redux/editor';
 import { store } from '../';
 
@@ -15,6 +16,16 @@ export function getImagesBase64(api, { imageURLs }) {
         .then(base64Images => {
             store.dispatch(EditorActions.setImageTargets(base64Images));
         });
+}
+
+export function* saveManual(api, { productId, manualId, manual }) {
+    const response = yield call(api.saveManual, productId, manualId, manual);
+
+    if (response.ok) {
+        yield put(EditorActions.doneSaveManual());
+    } else {
+        // @TODO: error handling
+    }
 }
 
 function convertToBase64(blob) {

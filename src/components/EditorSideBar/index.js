@@ -28,7 +28,8 @@ class EditorSideBar extends Component {
             addStep,
             step,
             assets,
-            addObject
+            addObject,
+            save
         } = this.props;
 
         const { handleClickStepButton, handleInstructionChange } = this;
@@ -39,7 +40,7 @@ class EditorSideBar extends Component {
                     <div className="product-name-container">
                         <p className="product-name">{productName}</p>
                     </div>
-                    <a href="#" className="save-btn">
+                    <a href="#" className="save-btn" onClick={save}>
                         <FontAwesome name="save" size="2x" />
                     </a>
                 </div>

@@ -327,6 +327,36 @@ class Editor extends Component {
         this.imageTarget = null;
     };
 
+    save = () => {
+        const { steps, imageTargets, objects } = this.props.editor;
+        const { productId, manualId } = this.props.match.params;
+        const { requestSaveManual } = this.props;
+
+        const manual = {
+            steps: _.zipWith(
+                steps,
+                imageTargets,
+                objects,
+                (step, imageTarget, stepObjects) => ({
+                    instruction: step.instruction,
+                    imageTarget: !imageTarget ? imageTarget : imageTarget.blob,
+                    objects: stepObjects
+                })
+            ).map((step, i) => ({
+                ...step,
+                index: i,
+                objects: step.objects.asMutable().map(object => ({
+                    type: object.name,
+                    x: object.pos.x,
+                    y: object.pos.y,
+                    z: object.pos.z
+                }))
+            }))
+        };
+
+        requestSaveManual(productId, manualId, manual);
+    };
+
     onCanvasMount = () => {
         const { initializeEngine } = this;
         const { setProductName, setSelectedObject } = this.props;
@@ -449,6 +479,15 @@ class Editor extends Component {
             }
 
             return;
+        }
+
+        const { isSaved } = newProps.editor;
+
+        if (isSaved) {
+            const { push } = this.props.history;
+            const { productId } = this.props.match.params;
+
+            push(`/home/products/${productId}`);
         }
 
         // add/remove objects
@@ -580,6 +619,8 @@ class Editor extends Component {
             setSelectedObject
         } = this.props;
 
+        const { save } = this;
+
         const numberOfSteps = steps.length;
 
         return isStarted
@@ -594,6 +635,7 @@ class Editor extends Component {
                       setStepIndex={setStepIndex}
                       setStepInstruction={setStepInstruction}
                       addObject={addObject}
+                      save={save}
                   />
                   <ObjectsBar
                       objects={objects}
@@ -656,7 +698,11 @@ const mapDispatchToProps = dispatch => {
         mergeManualToEditor: manual =>
             dispatch(EditorActions.mergeManualToEditor(manual)),
         requestFetchImagesBase64: imageURLs =>
-            dispatch(EditorActions.requestFetchImagesBase64(imageURLs))
+            dispatch(EditorActions.requestFetchImagesBase64(imageURLs)),
+        requestSaveManual: (productId, manualId, manual) =>
+            dispatch(
+                EditorActions.requestSaveManual(productId, manualId, manual)
+            )
     };
 };
 

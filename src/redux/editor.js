@@ -17,7 +17,9 @@ const { Types, Creators } = createActions({
     setSelectedObject: ['id'],
     updateObjectPosition: ['id', 'pos'],
     mergeManualToEditor: ['manual'],
-    requestFetchImagesBase64: ['imageURLs']
+    requestFetchImagesBase64: ['imageURLs'],
+    requestSaveManual: ['productId', 'manualId', 'manual'],
+    doneSaveManual: null
 });
 
 export const EditorTypes = Types;
@@ -27,6 +29,7 @@ export default Creators;
 
 export const INITIAL_STATE = Immutable({
     isStarted: false,
+    isSaved: false,
     steps: [
         {
             instruction: ''
@@ -170,6 +173,8 @@ export const mergeManualToEditor = (state, { manual }) => {
     });
 };
 
+export const doneSaveManual = state => state.merge({ isSaved: true });
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -185,5 +190,6 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.SET_IMAGE_TARGETS]: setImageTargets,
     [Types.SET_SELECTED_OBJECT]: setSelectedObject,
     [Types.UPDATE_OBJECT_POSITION]: updateObjectPosition,
-    [Types.MERGE_MANUAL_TO_EDITOR]: mergeManualToEditor
+    [Types.MERGE_MANUAL_TO_EDITOR]: mergeManualToEditor,
+    [Types.DONE_SAVE_MANUAL]: doneSaveManual
 });

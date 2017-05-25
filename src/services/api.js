@@ -49,6 +49,8 @@ const create = (baseURL = 'http://192.168.1.5:8000') => {
                 name,
                 summary: description
             }),
+        saveManual: (productId, manualId, manual) =>
+            api.put(`/products/${productId}/manuals/${manualId}`, manual),
         get: (url) =>
             fetch(url)
     };
