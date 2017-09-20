@@ -13,7 +13,9 @@ class ImageTargetBar extends Component {
     handleChangeImageTarget = e => {
         const { setImageTarget, currentStepIndex } = this.props;
 
-        const image = e.target.files[0];
+        const uploader = e.target;
+
+        const image = uploader.files[0];
 
         if (image) {
             const reader = new FileReader();
@@ -30,6 +32,8 @@ class ImageTargetBar extends Component {
                     };
 
                     setImageTarget(currentStepIndex, result, dimensions);
+
+                    uploader.value = '';
                 };
             };
 

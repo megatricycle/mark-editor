@@ -26,6 +26,7 @@ class Editor extends Component {
         this.imageTarget = null;
         this.manipulators = null;
         this.ground = null;
+        this.manipulatorHelper = null;
     };
 
     loadAsset = asset => {
@@ -73,6 +74,8 @@ class Editor extends Component {
             id
         };
 
+        object.position = pos;
+
         object.meshes = this.assets[asset].map(mesh => mesh.clone());
 
         object.meshes[0].position.x += pos.x;
@@ -92,6 +95,8 @@ class Editor extends Component {
 
     moveObject = (id, pos) => {
         const object = this.objects.filter(o => o.id === id)[0];
+
+        object.position = pos;
 
         object.meshes[0].position.x += pos.x - object.meshes[0].position.x;
         object.meshes[0].position.y += pos.y - object.meshes[0].position.y;
@@ -148,7 +153,7 @@ class Editor extends Component {
 
             const { ground } = this;
 
-            // ground.isPickable = false;
+            ground.isPickable = false;
 
             ground.material = new BABYLON.StandardMaterial(
                 'groundTexture',
@@ -156,12 +161,6 @@ class Editor extends Component {
             );
             ground.material.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
             ground.material.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-
-            // remove junk
-            // scene.getMeshByID('Box').pickable = false;
-            // scene.getMeshByID('Box1').pickable = false;
-            // scene.getMeshByID('undefined.Box').pickable = false;
-            // scene.getMeshByID('undefined.Box1').pickable = false;
 
             return Promise.resolve(scene);
         });
@@ -179,6 +178,46 @@ class Editor extends Component {
         object.meshes.forEach(mesh => {
             mesh.dispose();
         });
+    };
+
+    createManipulatorHelpers = axis => {
+        const { scene } = this;
+        const selectedObjectId = this.props.editor.selectedObject;
+        const selectedObject = this.objects.filter(
+            o => o.id === selectedObjectId
+        )[0];
+
+        this.manipulatorHelper = new BABYLON.Mesh.CreatePlane(
+            'manipulatorHelper',
+            1000,
+            scene
+        );
+
+        if (axis === 'x' || axis === 'z') {
+            this.manipulatorHelper.rotation = new BABYLON.Vector3(
+                Math.PI / 2,
+                0,
+                0
+            );
+        } else if (axis === 'y') {
+            this.manipulatorHelper.billboardMode =
+                BABYLON.Mesh.BILLBOARDMODE_ALL;
+        }
+
+        this.manipulatorHelper.position = new BABYLON.Vector3(
+            selectedObject.position.x,
+            selectedObject.position.y,
+            selectedObject.position.z
+        );
+
+        this.manipulatorHelper.visibility = false;
+    };
+
+    clearManipulatorHelpers = () => {
+        if (this.manipulatorHelper) {
+            this.manipulatorHelper.dispose();
+            this.manipulatorHelper = null;
+        }
     };
 
     createManipulator = selectedObject => {
@@ -358,7 +397,11 @@ class Editor extends Component {
     };
 
     onCanvasMount = () => {
-        const { initializeEngine } = this;
+        const {
+            initializeEngine,
+            createManipulatorHelpers,
+            clearManipulatorHelpers
+        } = this;
         const { setProductName, setSelectedObject } = this.props;
         const { editor } = this.refs;
 
@@ -381,10 +424,13 @@ class Editor extends Component {
                 if (id !== this.props.editor.selectedObject) {
                     setSelectedObject(id);
                 }
-            } else {
-                if (this.props.editor.selectedObject) {
-                    setSelectedObject(null);
-                }
+            } else if (
+                this.props.editor.selectedObject &&
+                !(pick.hit &&
+                    pick.pickedMesh.metadata &&
+                    pick.pickedMesh.metadata.type === 'manipulator')
+            ) {
+                setSelectedObject(null);
             }
         });
 
@@ -392,8 +438,6 @@ class Editor extends Component {
 
         editor.addEventListener('mousedown', () => {
             const { scene } = this;
-
-            this.ground.isPickable = false;
 
             const pick = scene.pick(scene.pointerX, scene.pointerY);
 
@@ -407,9 +451,9 @@ class Editor extends Component {
                 axis = pick.pickedMesh.metadata.axis;
 
                 this.camera.detachControl(this.canvas);
-            }
 
-            this.ground.isPickable = true;
+                createManipulatorHelpers(axis);
+            }
         });
 
         editor.addEventListener('mousemove', () => {
@@ -453,6 +497,8 @@ class Editor extends Component {
         editor.addEventListener('mouseup', () => {
             if (clicked) {
                 clicked = false;
+
+                clearManipulatorHelpers();
 
                 this.camera.attachControl(this.canvas, null, null);
             }
