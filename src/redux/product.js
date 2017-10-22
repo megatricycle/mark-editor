@@ -24,7 +24,9 @@ const { Types, Creators } = createActions({
     requestAddManual: ['productId', 'name', 'description'],
     doneAddManual: null,
     setManual: ['productId', 'manual'],
-    requestProductAndManual: ['productId', 'manualId']
+    requestProductAndManual: ['productId', 'manualId'],
+    requestUploadImageTarget: ['productId', 'image'],
+    addImageTarget: ['productId', 'imageTarget']
 });
 
 export const ProductTypes = Types;
@@ -122,6 +124,27 @@ export const setManual = (state, { productId, manual }) => {
     return state.merge(state);
 };
 
+export const addImageTarget = (state, { productId, imageTarget }) => {
+    const product = _.find(state.products, ['id', productId]);
+
+    if (product) {
+        const updatedProducts = state.products.map(currentProduct => {
+            if (currentProduct.id === productId) {
+                return {
+                    ...currentProduct,
+                    imageTargets: [...currentProduct.imageTargets, imageTarget]
+                };
+            }
+
+            return currentProduct;
+        });
+
+        return state.merge({ products: updatedProducts });
+    }
+
+    return state.merge(state);
+};
+
 /* ------------- Hookup Reducers To Types ------------- */
 
 export const reducer = createReducer(INITIAL_STATE, {
@@ -133,5 +156,6 @@ export const reducer = createReducer(INITIAL_STATE, {
     [Types.DONE_ADD_PRODUCT]: doneAddProduct,
     [Types.REQUEST_ADD_MANUAL]: requestAddManual,
     [Types.DONE_ADD_MANUAL]: doneAddManual,
-    [Types.SET_MANUAL]: setManual
+    [Types.SET_MANUAL]: setManual,
+    [Types.ADD_IMAGE_TARGET]: addImageTarget
 });

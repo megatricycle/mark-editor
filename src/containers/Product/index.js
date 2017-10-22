@@ -179,9 +179,14 @@ class Product extends Component {
     }
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state, props) => {
+    const { productId } = props.match.params;
+
     return {
-        selectedProduct: getSelectedProduct(state.product),
+        selectedProduct: getSelectedProduct(
+            state.product.products,
+            parseInt(productId, 10)
+        ),
         product: state.product
     };
 };

@@ -52,7 +52,18 @@ const create = (baseURL = 'http://192.168.1.13:8000') => {
         saveManual: (productId, manualId, manual) =>
             api.put(`/products/${productId}/manuals/${manualId}`, manual),
         get: (url) =>
-            fetch(url)
+            fetch(url),
+        uploadImageTarget: (productId, image) => {
+            const data = new FormData();
+
+            data.append('image', image);
+
+            return api.post(`/products/${productId}/image_targets`, data, {
+                header: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+        }
     };
 };
 

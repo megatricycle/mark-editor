@@ -13,9 +13,10 @@ import {
     getManual,
     addProduct,
     addManual,
-    getProductAndManual
+    getProductAndManual,
+    uploadImageTarget
 } from './product';
-import { getImagesBase64, saveManual } from './editor';
+import { saveManual } from './editor';
 
 const api = API.create();
 
@@ -36,11 +37,11 @@ export default function* root() {
             getProductAndManual,
             api
         ),
+        takeLatest(EditorTypes.REQUEST_SAVE_MANUAL, saveManual, api),
         takeLatest(
-            EditorTypes.REQUEST_FETCH_IMAGES_BASE64,
-            getImagesBase64,
+            ProductTypes.REQUEST_UPLOAD_IMAGE_TARGET,
+            uploadImageTarget,
             api
-        ),
-        takeLatest(EditorTypes.REQUEST_SAVE_MANUAL, saveManual, api)
+        )
     ]);
 }

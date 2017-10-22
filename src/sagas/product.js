@@ -1,5 +1,6 @@
 import { call, put } from 'redux-saga/effects';
 import ProductActions from '../redux/product';
+import EditorActions from '../redux/editor';
 
 export function* getProducts(api, { userId }) {
     const response = yield call(api.getProducts, userId);
@@ -95,6 +96,19 @@ export function* getProductAndManual(api, { productId, manualId }) {
 
         yield put(ProductActions.setProduct(product));
         yield put(ProductActions.requestManual(productId, manualId));
+    } else {
+        // @TODO: error handling
+    }
+}
+
+export function* uploadImageTarget(api, { productId, image }) {
+    const response = yield call(api.uploadImageTarget, productId, image);
+
+    if (response.ok) {
+        const imageTarget = response.data;
+
+        yield put(ProductActions.addImageTarget(productId, imageTarget));
+        yield put(EditorActions.setImageTarget(imageTarget.url));
     } else {
         // @TODO: error handling
     }

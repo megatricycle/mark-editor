@@ -1,15 +1,9 @@
 import { createSelector } from 'reselect';
 
-export const getSelectedProduct = createSelector(
-    [products => products.products, products => products.selectedProduct],
-    (products, selectedProduct) => {
-        if (!selectedProduct) {
-            return null;
-        }
-
-        return products.filter(product => product.id === selectedProduct)[0];
-    }
-);
+export const getSelectedProduct = (products, productId) =>
+    createSelector([products => products], products => {
+        return products.filter(product => product.id === productId)[0];
+    })(products);
 
 export const getManual = (products, productId, manualId) =>
     createSelector([products => products], products => {
@@ -30,4 +24,17 @@ export const getManual = (products, productId, manualId) =>
         }
 
         return manualArray[0];
+    })(products);
+
+export const getImageTargets = (products, productId) =>
+    createSelector([products => products], products => {
+        const productArray = products.filter(
+            product => product.id === productId
+        );
+
+        if (productArray.length === 0) {
+            return null;
+        }
+
+        return productArray[0].imageTargets;
     })(products);

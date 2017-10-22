@@ -14,7 +14,11 @@ import {
     getCurrentImageTarget,
     getSelectedObject
 } from '../../selectors/editor';
-import { getManual } from '../../selectors/product';
+import {
+    getManual,
+    getImageTargets,
+    getSelectedProduct
+} from '../../selectors/product';
 import './style.css';
 
 const MANIPULATORS_SPREAD = 1;
@@ -298,11 +302,7 @@ class Editor extends Component {
     };
 
     initializeEngine = () => {
-        const {
-            mergeManualToEditor,
-            requestFetchImagesBase64,
-            selectedManual
-        } = this.props;
+        const { mergeManualToEditor, selectedManual } = this.props;
         const canvas = this.refs.editor;
 
         this.canvas = canvas;
@@ -310,9 +310,6 @@ class Editor extends Component {
 
         this.createMainScene().then(() => {
             mergeManualToEditor(selectedManual);
-            requestFetchImagesBase64(
-                selectedManual.steps.map(step => step.imageTarget)
-            );
 
             this.engine.runRenderLoop(() => {
                 this.scene.render();
@@ -320,43 +317,63 @@ class Editor extends Component {
         });
     };
 
-    createImageTarget = (blob, dimensions) => {
+    createImageTarget = url => {
+        // @TODO: dimensions
+        // @TODO: refactor
+        const self = this;
         const { scene } = this;
 
-        this.imageTarget = BABYLON.Mesh.CreatePlane('imageTarget', 25, scene);
+        const img = new Image();
 
-        this.imageTarget.isPickable = false;
+        img.src = url;
 
-        // scale width
-        this.imageTarget.scaling.x = dimensions.width > dimensions.height
-            ? 1
-            : dimensions.width / dimensions.height;
+        img.addEventListener('load', function() {
+            const dimensions = {
+                width: this.naturalWidth,
+                height: this.naturalHeight
+            };
 
-        // scale height
-        this.imageTarget.scaling.y = dimensions.height > dimensions.width
-            ? 1
-            : dimensions.height / dimensions.width;
+            self.imageTarget = BABYLON.Mesh.CreatePlane(
+                'imageTarget',
+                25,
+                scene
+            );
 
-        this.imageTarget.material = new BABYLON.StandardMaterial(
-            'imageTargetTexture',
-            scene
-        );
-        this.imageTarget.material.ambientTexture = new BABYLON.Texture(
-            'data:imageTarget',
-            scene,
-            false,
-            true,
-            BABYLON.Texture.BILINEAR_SAMPLINGMODE,
-            null,
-            null,
-            blob,
-            true
-        );
-        this.imageTarget.material.diffuseColor = new BABYLON.Color3(1, 1, 1);
-        this.imageTarget.material.specularColor = new BABYLON.Color3(0, 0, 0);
+            self.imageTarget.isPickable = false;
 
-        this.imageTarget.position = new BABYLON.Vector3(0, 0.01, 0);
-        this.imageTarget.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+            // scale width
+            self.imageTarget.scaling.x = dimensions.width > dimensions.height
+                ? 1
+                : dimensions.width / dimensions.height;
+
+            // scale height
+            self.imageTarget.scaling.y = dimensions.height > dimensions.width
+                ? 1
+                : dimensions.height / dimensions.width;
+
+            self.imageTarget.material = new BABYLON.StandardMaterial(
+                'imageTargetTexture',
+                scene
+            );
+
+            self.imageTarget.material.ambientTexture = new BABYLON.Texture(
+                url,
+                scene
+            );
+            self.imageTarget.material.diffuseColor = new BABYLON.Color3(
+                1,
+                1,
+                1
+            );
+            self.imageTarget.material.specularColor = new BABYLON.Color3(
+                0,
+                0,
+                0
+            );
+
+            self.imageTarget.position = new BABYLON.Vector3(0, 0.01, 0);
+            self.imageTarget.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+        });
     };
 
     clearImageTarget = () => {
@@ -378,7 +395,7 @@ class Editor extends Component {
                 objects,
                 (step, imageTarget, stepObjects) => ({
                     instruction: step.instruction,
-                    imageTarget: !imageTarget ? imageTarget : imageTarget.blob,
+                    imageTarget: !imageTarget ? imageTarget : imageTarget.url,
                     objects: stepObjects
                 })
             ).map((step, i) => ({
@@ -567,10 +584,7 @@ class Editor extends Component {
             }
 
             if (newProps.imageTarget) {
-                createImageTarget(
-                    newProps.imageTarget.blob,
-                    newProps.imageTarget.dimensions
-                );
+                createImageTarget(newProps.imageTarget.url);
             }
         }
 
@@ -622,14 +636,10 @@ class Editor extends Component {
     }
 
     componentDidMount() {
-        const { selectedProduct, start, requestProductAndManual } = this.props;
+        const { requestProductAndManual } = this.props;
         const { productId, manualId } = this.props.match.params;
 
-        if (!selectedProduct) {
-            requestProductAndManual(productId, manualId);
-        } else {
-            start();
-        }
+        requestProductAndManual(productId, manualId);
     }
 
     componentDidUpdate(prevProps) {
@@ -656,13 +666,16 @@ class Editor extends Component {
             step,
             objects,
             imageTarget,
+            imageTargets,
             addStep,
             setStepIndex,
             setStepInstruction,
             addObject,
             removeObject,
             setImageTarget,
-            setSelectedObject
+            setSelectedObject,
+            selectedProduct,
+            requestUploadImageTarget
         } = this.props;
 
         const { save } = this;
@@ -690,9 +703,12 @@ class Editor extends Component {
                       setSelectedObject={setSelectedObject}
                   />
                   <ImageTargetBar
+                      productId={selectedProduct.id}
+                      imageTargets={imageTargets}
                       imageTarget={imageTarget}
                       setImageTarget={setImageTarget}
                       currentStepIndex={currentStepIndex}
+                      requestUploadImageTarget={requestUploadImageTarget}
                   />
                   <canvas ref="editor" className="editor" />
               </div>
@@ -710,12 +726,16 @@ const mapStateToProps = (state, props) => {
         objects: getCurrentObjects(editor),
         imageTarget: getCurrentImageTarget(editor),
         selectedObject: getSelectedObject(editor),
-        selectedProduct: null,
+        selectedProduct: getSelectedProduct(
+            product.products,
+            parseInt(productId, 10)
+        ),
         selectedManual: getManual(
             product.products,
             parseInt(productId, 10),
             parseInt(manualId, 10)
-        )
+        ),
+        imageTargets: getImageTargets(product.products, parseInt(productId, 10))
     };
 };
 
@@ -732,8 +752,8 @@ const mapDispatchToProps = dispatch => {
         addObject: (id, name, img, pos) =>
             dispatch(EditorActions.addObject(id, name, img, pos)),
         removeObject: id => dispatch(EditorActions.removeObject(id)),
-        setImageTarget: (stepIndex, blob, dimensions) =>
-            dispatch(EditorActions.setImageTarget(stepIndex, blob, dimensions)),
+        setImageTarget: (stepIndex, url, dimensions) =>
+            dispatch(EditorActions.setImageTarget(stepIndex, url, dimensions)),
         setSelectedObject: id => dispatch(EditorActions.setSelectedObject(id)),
         updateObjectPosition: (id, pos) =>
             dispatch(EditorActions.updateObjectPosition(id, pos)),
@@ -743,12 +763,12 @@ const mapDispatchToProps = dispatch => {
             ),
         mergeManualToEditor: manual =>
             dispatch(EditorActions.mergeManualToEditor(manual)),
-        requestFetchImagesBase64: imageURLs =>
-            dispatch(EditorActions.requestFetchImagesBase64(imageURLs)),
         requestSaveManual: (productId, manualId, manual) =>
             dispatch(
                 EditorActions.requestSaveManual(productId, manualId, manual)
-            )
+            ),
+        requestUploadImageTarget: (productId, image) =>
+            dispatch(ProductActions.requestUploadImageTarget(productId, image))
     };
 };
 

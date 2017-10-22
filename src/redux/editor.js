@@ -12,12 +12,11 @@ const { Types, Creators } = createActions({
     setStepInstruction: ['i', 'instruction'],
     addObject: ['id', 'name', 'img', 'pos'],
     removeObject: ['id'],
-    setImageTarget: ['stepIndex', 'blob', 'dimensions'],
+    setImageTarget: ['url'],
     setImageTargets: ['imageTargets'],
     setSelectedObject: ['id'],
     updateObjectPosition: ['id', 'pos'],
     mergeManualToEditor: ['manual'],
-    requestFetchImagesBase64: ['imageURLs'],
     requestSaveManual: ['productId', 'manualId', 'manual'],
     doneSaveManual: null
 });
@@ -113,11 +112,11 @@ export const removeObject = (state, { id }) =>
         selectedObject: null
     });
 
-export const setImageTarget = (state, { stepIndex, blob, dimensions }) =>
+export const setImageTarget = (state, { url }) =>
     state.merge({
         imageTargets: state.imageTargets.map((imageTarget, i) => {
-            if (stepIndex === i) {
-                return { blob, dimensions };
+            if (state.currentStepIndex === i) {
+                return { url };
             }
 
             return imageTarget;
@@ -148,11 +147,11 @@ export const updateObjectPosition = (state, { id, pos }) =>
     });
 
 export const mergeManualToEditor = (state, { manual }) => {
-    const steps = manual.steps.length === 0
+    const steps = !manual.steps || manual.steps.length === 0
         ? [{ instruction: '' }]
         : manual.steps.map(step => ({ instruction: step.instruction }));
 
-    const objects = manual.steps.length === 0
+    const objects = !manual.steps || manual.steps.length === 0
         ? [[]]
         : manual.steps.map(step =>
               step.objects.map(object => ({
@@ -167,9 +166,14 @@ export const mergeManualToEditor = (state, { manual }) => {
               }))
           );
 
+    const imageTargets = !manual.steps || manual.steps.length === 0
+        ? [null]
+        : manual.steps.map(step => ({ url: step.imageTarget }));
+
     return state.merge({
         steps,
-        objects
+        objects,
+        imageTargets
     });
 };
 
