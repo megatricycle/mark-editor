@@ -20,12 +20,26 @@
     padding-left: 6em !important;
 }
 
+.login-description > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-logo {
+    width: 300px;
+    margin-bottom: 1.5em;
+}
+
 .login-title {
     font-size: 3em;
     margin-bottom: 0.5em;
+    text-align: center;
 }
 
 .login-subtitle {
     font-size: 2em;
     font-weight: 100;
+    text-align: center;
 }

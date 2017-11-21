@@ -24,6 +24,7 @@ class ObjectsBar extends Component {
                             id={object.id}
                             name={object.name}
                             img={object.img}
+                            pos={object.pos}
                             highlighted={object.id === selectedObject}
                             removeObject={removeObject}
                             setSelectedObject={setSelectedObject}

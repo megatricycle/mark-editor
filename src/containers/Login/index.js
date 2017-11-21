@@ -79,12 +79,19 @@ class Login extends Component {
                 <Grid>
                     <Grid.Row>
                         <Grid.Column width={8} className="login-description">
-                            <p className="login-title">
-                                Some catchy line here.
-                            </p>
-                            <p className="login-subtitle">
-                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eveniet ut aliquam perferendis porro ullam laudantium ex doloremque sunt accusamus, veritatis.
-                            </p>
+                            <div>
+                                <img
+                                    className="login-logo"
+                                    src="/logo_web_base.png"
+                                    alt="logo"
+                                />
+                                <p className="login-title">
+                                    MARK Editor
+                                </p>
+                                <p className="login-subtitle">
+                                    Create wonderful AR Manuals for your customers.
+                                </p>
+                            </div>
                         </Grid.Column>
                         <Grid.Column width={8} className="sign-up-container">
                             <Segment raised>

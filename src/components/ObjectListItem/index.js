@@ -19,7 +19,7 @@ class ObjectListItem extends Component {
     };
 
     render() {
-        const { name, img, highlighted } = this.props;
+        const { name, img, highlighted, pos } = this.props;
         const { handleRemove, handleObjectClick } = this;
 
         return (
@@ -35,7 +35,7 @@ class ObjectListItem extends Component {
                 />
                 <div className="object-name-container">
                     <span className="object-name">
-                        {name}
+                        {`${name} (${pos.x}, ${pos.y}, ${pos.z})`}
                     </span>
                 </div>
                 <a href="#" className="object-delete" onClick={handleRemove}>

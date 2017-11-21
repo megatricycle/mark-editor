@@ -453,7 +453,7 @@ class Editor extends Component {
 
         let clicked = false, axis = null;
 
-        editor.addEventListener('mousedown', () => {
+        editor.addEventListener('pointerdown', () => {
             const { scene } = this;
 
             const pick = scene.pick(scene.pointerX, scene.pointerY);
@@ -473,7 +473,7 @@ class Editor extends Component {
             }
         });
 
-        editor.addEventListener('mousemove', () => {
+        editor.addEventListener('pointermove', () => {
             if (clicked) {
                 const { scene } = this;
                 const { selectedObject, updateObjectPosition } = this.props;
@@ -482,7 +482,7 @@ class Editor extends Component {
 
                 const { pickedPoint } = pick;
 
-                if (pickedPoint) {
+                if (pickedPoint && selectedObject) {
                     if (axis === 'x') {
                         const newX = pickedPoint.x - MANIPULATORS_SPREAD;
 
